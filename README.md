@@ -10,7 +10,7 @@ Proyecto para Bases de Datos 2
 ### Para levantar las cosas
 - ```pnpm install```
 - ```pnpm --filter backend build``` para compilar
-- ```pnpm --filter backend build``` para levantar el backend
+- ```pnpm --filter backend dev``` para levantar el backend
 
 ### Para instalar paquetes 
 - ```pnpm --filter [frontend o  backend] add -D [paquete]``` para instalar en un proyecto específico
