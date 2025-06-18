@@ -1,4 +1,6 @@
 node_modules/*
 packages/backend/node_modules/*
 packages/frontend/node_modules/*
+packages/backend/app/*
+packages/frontend/app/*
 .env
