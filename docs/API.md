@@ -1,96 +1,551 @@
-# API para el proyecto
+# API para el proyecto (Completa)
+
+En la medida de lo posible, se intenta "desnormalizar" la información. O sea, un endpoint puede resultar en varias consultas en la base de datos y se devuelve la información junta. La idea es simplificar el contrato de la API y reducir la cantidad de requests por parte del front.
+
+Todos los endpoints, menos la autenticación y los resultados de las elecciones, necesitan el JWT.
 
 ## GET
-#### /api/elecciones/
-- Devuelve las elecciones (con todos los campos, son 3 nomás)
 
-#### /api/elecciones/{idEleccion}/circuitos
-- Devuelve los circuitos de una elección determinada. No devuelve toda la info de cada circuito, solo info básica y una URL para acceder al recuso completo.
-- **Pseudo-json:**
-```json
+---
+
+### Departamentos
+
+#### `GET /api/departamentos`
+- Devuelve una lista con los 19 departamentos.
+
+```jsonc
 {
   "data": [
     {
-      "numero": XX,
-      "estado": "abierto"|"cerrado",
-      "url": "/api/elecciones/X/circuitos/XX"
+      "numero": 1,
+      "nombre": "montevideo"
     },
-    {
-      ...
-    },
-    ...
+    //...
   ]
 }
 ```
 
-#### /api/elecciones/{idEleccion}/circuitos/{numero}
-- Devuelve un circuito específico, con toda su información. Además, incluye otra info relacionada (?).
-- **Pseudo-json:**
-```json
+#### `GET /api/departamentos/{numero}`
+- Devuelve un departamento específico.
+
+```jsonc
 {
-  "numero": XX,
-  "idEleccion": X,
-  ...,
+  "numero": 1,
+  "nombre": "montevideo"
 }
 ```
-**TODO: mandar establecimiento con circuito? así ahorramos pegadas a la api**
 
-**TODO: mandar mesa con circuito? no tiene sentido poner una URI para listar mesas, si es una sola x circuito**
+#### `GET /api/departamentos/{numero}/establecimientos`
+- Devuelve todos los establecimientos de un departamento.
 
-#### /api/votantes/
-- Devuelve todos los votantes, con info básica.
-- Devuelve URL para acceder al recurso
-- **Pseudo-json:**
-```json
+```jsonc
 {
   "data": [
     {
-      "ci": XXXXXXXX,
-      "nombreCompleto": "XXXXX XXXXX",
-      "credencial": "AAA XXXXX",
-      "url": "/api/votantes/XXXXXXXX/"
+      "id": 123,
+      "nombre": "Establecimiento A",
+      "tipo": "Escuela",
+      "direccion": {
+        "calle": "Calle Falsa",
+        "numero": "123",
+        "ciudad": "Montevideo",
+        "pueblo": null,
+        "paraje": null
+      },
+      "url": "/api/establecimientos/123"
     }
-    ...
+    // ...
   ]
 }
 ```
 
-#### /api/votantes/{ci}/
-- Devuelve un votante + toda la info relacionada (incluyendo tabla VotanteVota) (mínimo *overhead*, en toda su vida una persona participa de 15 elecciones como mucho).
-- **Pseudo-json:**
-```json
-{
-  "ci": XXXXXXXX,
-  "nombreCompleto": "XXXXX XXXXX",
-  "credencial": "AAA XXXXX",
-  "fechaNacimiento": "XX/XX/XXXX",
-  "vota": [
-    {
-      "idEleccion": X,
-      "circuito": XX,
-      "observado": true|false
-    },
-    ...
-  ]
-}
-```
+---
 
-#### /api/candidatos/
-- Devuelve todos los candidatos.
-- Tablas Candidato + Votante + CandidatoParticipa
-- **Pseudo-json:**
-```json
+### Elecciones
+
+#### `GET /api/elecciones`
+- Devuelve todas las elecciones.
+
+```jsonc
 {
   "data": [
     {
-      "ci":,
-      "nombreCompleto":,
-      "nombrePartido":,
-      "participa": [X, Y, Z],
-      "infoPartido":
-      "infoPersonal":
+      "id": 1,
+      "tipo": "Nacional",
+      "fecha": "2024-10-27"
     },
-    ...
+    // ...
   ]
+}
+```
+
+#### `GET /api/elecciones/{id}`
+- Devuelve una elección específica.
+
+```jsonc
+{
+  "id": 1,
+  "tipo": "Nacional",
+  "fecha": "2024-10-27"
+}
+```
+
+#### `GET /api/elecciones/{idEleccion}/circuitos`
+- Devuelve los circuitos de una elección determinada. Solo info básica y una URL para acceder al recurso completo.
+
+```jsonc
+{
+  "data": [
+    {
+      "numero": 1,
+      "estado": "abierto", // o cerrado
+      "url": "/api/elecciones/1/circuitos/1"
+    },
+    // ...
+  ]
+}
+```
+
+#### `GET /api/elecciones/{idEleccion}/circuitos/{numero}`
+- Devuelve un circuito específico, con toda su información, incluyendo el establecimiento y la mesa correspondiente.
+
+```jsonc
+{
+  "numero": 1,
+  "idEleccion": 1,
+  "esAccesible": true,
+  "horaInicio": "08:00:00",
+  "horaCierre": "19:30:00",
+  "rangoInicioCred": "00000",
+  "rangoFinCred": "99999",
+  "serie": "AAA",
+  "estado": "abierto",
+  "establecimiento": {
+    "id": 123,
+    "nombre": "Establecimiento A",
+    "tipo": "Escuela",
+    "departamento": {
+      "numero": 1,
+      "nombre": "montevideo"
+    },
+    "direccion": {
+      "calle": "Calle Falsa",
+      "numero": "123",
+      "ciudad": "Montevideo",
+      "pueblo": null,
+      "paraje": null
+    }
+  },
+  "mesa": {
+    "numero": 1,
+    "presidente": { "ci": 12345678, "nombreCompleto": "Presidente Mesa" },
+    "secretario": { "ci": 87654321, "nombreCompleto": "Secretario Mesa" },
+    "vocal": { "ci": 11223344, "nombreCompleto": "Vocal Mesa" }
+  }
+}
+```
+
+#### `GET /api/elecciones/{idEleccion}/circuitos/{numero}/resultados`
+- Devuelve los resultados de una elección para un circuito específico, con votos por fórmula.
+
+```jsonc
+{
+  "idEleccion": 1,
+  "numeroCircuito": 1,
+  "votos": {
+    "total": 350,
+    "validos": 340,
+    "blanco": 5,
+    "anulado": 5,
+    "porFormula": [
+      {
+        "partido": {
+          "nombre": "Partido A",
+          "url": "/api/partidos/Partido%20A"
+        },
+        "presidente": {
+          "ci": 12345678,
+          "nombreCompleto": "Candidato A Presidente",
+          "url": "/api/candidatos/12345678"
+        },
+        "vicepresidente": {
+          "ci": 87654321,
+          "nombreCompleto": "Candidato A Vicepresidente",
+          "url": "/api/candidatos/87654321"
+        },
+        "votos": 150
+      }
+      // ...
+    ]
+  }
+}
+```
+
+#### `POST /api/elecciones/{idEleccion}/circuitos/{numero}/cerrar`
+- Cierra un circuito electoral. Devuelve un error si se intenta cerrar antes de la `horaCierre` especificada.
+
+**Success Response (200 OK):**
+- Devuelve el objeto del circuito actualizado con el estado "cerrado".
+```jsonc
+{
+  "numero": 1,
+  "idEleccion": 1,
+  "estado": "cerrado",
+  "url": "/api/elecciones/1/circuitos/1"
+}
+```
+
+**Error Response (409 Conflict):**
+```jsonc
+{
+  "error": "El circuito no puede ser cerrado antes de las 19:30:00."
+}
+```
+
+#### `POST /api/elecciones/{idEleccion}/circuitos/{numero}/votar`
+- Registra la constancia de voto para un ciudadano y el voto emitido. Esto corresponde a una inserción en las tablas `VotanteVota`, `Voto` y `Valido` (si corresponde). Si el votante no pertenece a este circuito, el voto debe ser marcado como `observado`.
+
+**Request Body:**
+```jsonc
+{
+  "ciVotante": 12345678,
+  "observado": false,
+  "voto": {
+    "tipo": "Valido", // "Valido", "Blanco" o "Anulado"
+    "nombrePartido": "Partido A" // Opcional. Solo si el tipo es "Valido".
+  }
+}
+```
+
+**Success Response (201 Created):**
+- Devuelve los registros creados.
+```jsonc
+{
+  "ciVotante": 12345678,
+  "idEleccion": 1,
+  "observado": false,
+  "numCircuito": 1
+}
+```
+
+**Error Response (409 Conflict):**
+```jsonc
+{
+  "error": "El votante con CI 12345678 ya ha votado en esta elección."
+}
+```
+
+**Error Response (404 Not Found):**
+```jsonc
+{
+  "error": "El votante con CI 12345678 no fue encontrado."
+}
+```
+
+**Error Response (400 Bad Request):**
+```jsonc
+{
+  "error": "El votante con CI 12345678 no pertenece a este circuito y el voto no fue marcado como 'observado'."
+}
+```
+
+#### `GET /api/elecciones/{idEleccion}/votos-observados`
+- Devuelve una lista de todas las constancias de voto marcadas como observadas para una elección específica.
+
+**Success Response (200 OK):**
+```jsonc
+{
+  "data": [
+    {
+      "ciVotante": 87654321,
+      "idEleccion": 1,
+      "observado": true,
+      "numCircuito": 5
+    }
+    // ...
+  ]
+}
+```
+
+#### `POST /api/elecciones/{idEleccion}/votos-observados/{ciVotante}`
+- Confirma o anula un voto observado. La acción se especifica en el cuerpo de la solicitud.
+
+**Request Body:**
+```jsonc
+{
+  "accion": "confirmar" // "confirmar" o "anular"
+}
+```
+
+**Success Response (200 OK):**
+```jsonc
+{
+  "mensaje": "El voto observado del votante con CI 87654321 ha sido confirmado."
+}
+```
+
+**Error Response (404 Not Found):**
+```jsonc
+{
+  "error": "No se encontró un voto observado para el votante con CI 87654321 en esta elección."
+}
+```
+
+**Error Response (400 Bad Request):**
+```jsonc
+{
+  "error": "La acción especificada no es válida. Use 'confirmar' o 'anular'."
+}
+```
+
+**Error Response (409 Conflict):**
+```jsonc
+{
+  "error": "La elección ya ha finalizado y no se pueden procesar más votos observados."
+}
+```
+
+#### `GET /api/elecciones/{idEleccion}/resultados`
+- Devuelve los resultados de una elección, con votos por fórmula. Se pueden filtrar por departamento.
+
+**Query Parameters:**
+- `departamento` (opcional): Número del departamento para filtrar los resultados.
+
+```jsonc
+{
+  "idEleccion": 1,
+  "votos": {
+    "total": 15000,
+    "validos": 14500,
+    "blanco": 300,
+    "anulado": 200,
+    "porFormula": [
+      {
+        "partido": {
+          "nombre": "Partido A",
+          "url": "/api/partidos/Partido%20A"
+        },
+        "presidente": {
+          "ci": 12345678,
+          "nombreCompleto": "Candidato A Presidente",
+          "url": "/api/candidatos/12345678"
+        },
+        "vicepresidente": {
+          "ci": 87654321,
+          "nombreCompleto": "Candidato A Vicepresidente",
+          "url": "/api/candidatos/87654321"
+        },
+        "votos": 5000
+      }
+      // ...
+    ]
+  }
+}
+```
+
+---
+
+### Votantes
+
+#### `GET /api/votantes`
+- Devuelve todos los votantes, con info básica y URL para acceder al recurso.
+
+```jsonc
+{
+  "data": [
+    {
+      "ci": 12345678,
+      "nombreCompleto": "Juan Perez",
+      "credencial": "AAA 1234",
+      "url": "/api/votantes/12345678"
+    }
+    // ...
+  ]
+}
+```
+
+#### `GET /api/votantes/{ci}`
+- Devuelve un votante + toda la info relacionada (incluyendo tabla VotanteVota).
+
+```jsonc
+{
+  "ci": 12345678,
+  "nombreCompleto": "Juan Perez",
+  "credencial": "AAA 1234",
+  "fechaNacimiento": "1990-01-15",
+  "votaEn": [
+    {
+      "idEleccion": 1,
+      "tipoEleccion": "Nacional",
+      "fechaEleccion": "2024-10-27",
+      "circuito": 1,
+      "observado": false
+    },
+    // ...
+  ]
+}
+```
+
+---
+
+### Candidatos
+
+#### `GET /api/candidatos`
+- Devuelve todos los candidatos con su información personal, de partido y en qué elecciones participa.
+
+```jsonc
+{
+  "data": [
+    {
+      "ci": 12345678,
+      "nombreCompleto": "Candidato A",
+      "fechaNacimiento": "1980-05-20",
+      "partido": {
+        "nombre": "Partido A",
+        "url": "/api/partidos/Partido%20A"
+      },
+      "candidaturas": [
+        {
+          "idEleccion": 1,
+          "candidatura": "Presidente",
+          "url": "/api/elecciones/1"
+        }
+      ]
+    },
+    // ...
+  ]
+}
+```
+
+#### `GET /api/candidatos/{ci}`
+- Devuelve un candidato específico con toda su información.
+
+```jsonc
+{
+  "ci": 12345678,
+  "nombreCompleto": "Candidato A",
+  "credencial": "CBA 5678",
+  "fechaNacimiento": "1980-05-20",
+  "partido": {
+    "nombre": "Partido A",
+    "presidente": "Presidente Partido",
+    "numero": 10,
+    "url": "/api/partidos/Partido%20A"
+  },
+  "participaEn": [
+    {
+      "idEleccion": 1,
+      "tipoEleccion": "Nacional",
+      "candidatura": "Presidente"
+    },
+    {
+      "idEleccion": 2,
+      "tipoEleccion": "Balotaje",
+      "candidatura": "Presidente"
+    }
+  ]
+}
+```
+
+---
+
+### Partidos
+
+#### `GET /api/partidos`
+- Devuelve todos los partidos.
+
+```jsonc
+{
+  "data": [
+    {
+      "nombre": "Partido A",
+      "numero": 10,
+      "url": "/api/partidos/Partido%20A"
+    },
+    // ...
+  ]
+}
+```
+
+#### `GET /api/partidos/{nombre}`
+- Devuelve un partido específico con sus candidatos principales.
+
+```jsonc
+{
+  "nombre": "Partido A",
+  "presidente": "Presidente Partido",
+  "vicepresidente": "Vicepresidente Partido",
+  "numero": 10,
+  "sede": "Calle del Partido 123",
+  "candidatos": [
+      {
+          "ci": 12345678,
+          "nombreCompleto": "Candidato A",
+          "candidatura": "Presidente",
+          "idEleccion": 1
+      }
+      // ...
+  ]
+}
+```
+
+---
+
+### Establecimientos
+
+#### `GET /api/establecimientos/{id}`
+- Devuelve un establecimiento específico con su dirección.
+
+```jsonc
+{
+  "id": 123,
+  "nombre": "Establecimiento A",
+  "tipo": "Escuela",
+  "departamento": {
+    "numero": 1,
+    "nombre": "Montevideo"
+  },
+  "direccion": {
+    "calle": "Calle Falsa",
+    "numero": "123",
+    "ciudad": "Montevideo",
+    "pueblo": null,
+    "paraje": null
+  }
+}
+```
+
+---
+
+### Autenticación
+
+#### `POST /api/auth/login`
+- Autentica a un presidente de mesa y devuelve un JWT junto con la información de su circuito.
+
+**Request Body:**
+```jsonc
+{
+  "ci": 12345678,
+  "credencial": "AAA 12345"
+}
+```
+
+**Success Response (200 OK):**
+```jsonc
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ikp1YW4gUGVyZXoiLCJpYXQiOjE1MTYyMzkwMjJ9.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
+  "circuito": {
+    "numero": 1,
+    "idEleccion": 1,
+    "estado": "abierto",
+    "url": "/api/elecciones/1/circuitos/1"
+  }
+}
+```
+
+**Error Response (401 Unauthorized):**
+```jsonc
+{
+  "error": "Credenciales inválidas o no es presidente de mesa activo."
 }
 ```
