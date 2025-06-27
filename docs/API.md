@@ -4,10 +4,6 @@ En la medida de lo posible, se intenta "desnormalizar" la información. O sea, u
 
 Todos los endpoints, menos la autenticación y los resultados de las elecciones, necesitan el JWT.
 
-## GET
-
----
-
 ### Departamentos
 
 #### `GET /api/departamentos`
