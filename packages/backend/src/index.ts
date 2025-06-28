@@ -27,4 +27,4 @@ app.listen(port, () => {
   console.log(`Cuchando en ${port}`);
 });
 
-db_manager.getInstance(); // así ya queda la conexión pronta desde el inicio
+db_manager.getInstance().getConnection(); // así ya queda la conexión pronta desde el inicio

@@ -24,11 +24,9 @@ export class db_manager {
   private constructor() {
     try {
       this.pool = mysql.createPool(dbConfig);
-      console.log("[ OK ] Conexión con la base establecida.");
+      console.log("[ OK ] Pool de conexiones creada.");
     } catch (error) {
-      console.log(
-        "[ ERROR ] No se pudo establecer la conexión con la base. Apagando...",
-      );
+      console.log("[ ERROR ] No se pudo crear la pool. Apagando...");
       process.exit(1); // irrecuperable
     }
   }
@@ -41,6 +39,10 @@ export class db_manager {
     return this.instance;
   }
 
+  /***
+   * no se pueden hacer transacciones con la pool.
+   * hay que llamar conn.release() cuando se termina de usar.
+   */
   public getConnection(): Promise<PoolConnection> {
     return this.pool.getConnection();
   }
@@ -60,6 +62,6 @@ export class db_manager {
 
   public close() {
     this.pool.end();
-    console.log("[ OK ] Conexión con la base terminada.");
+    console.log("[ OK ] Pool de conexiones terminada.");
   }
 }
