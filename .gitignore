@@ -5,3 +5,4 @@ packages/backend/app/*
 packages/frontend/app/*
 packages/frontend/dist/*
 .env
+.vscode/*
