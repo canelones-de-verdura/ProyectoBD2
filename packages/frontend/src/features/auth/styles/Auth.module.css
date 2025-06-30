@@ -1,0 +1,61 @@
+.formAuthWrapper {
+    padding: 50px 20px !important;
+}
+
+.authForm {
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 10px;
+}
+
+.authForm a {
+    text-align: end;
+    color: var(--separator-color);
+    text-decoration: none;
+}
+
+.socialLogin {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+}
+
+.socialLoginOption {
+    background-color: var(--button-secondary);
+    color: var(--button-on-secondary);
+    width: 100%;
+}
+
+.socialLoginOption:hover {
+    background-color: var(--button-secondary-hover) !important;
+}
+
+
+.miniForm {
+    flex-direction: row !important;
+    gap: 10px;
+}
+
+.miniForm a {
+    font-weight: 800;
+    text-decoration: none;
+    color: var(--color-primary);
+}
+
+.logo {
+    width: 60%;
+    margin-bottom: 20px;
+}
+
+.formGroup{
+    display: flex;
+    flex-direction: column;
+}
+
+.formGroup span {
+    color: var(--color-error);
+}
