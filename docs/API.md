@@ -517,6 +517,7 @@ Todos los endpoints, menos la autenticación y los resultados de las elecciones,
 
 #### `POST /api/auth/login`
 - Autentica a un presidente de mesa y devuelve un JWT junto con la información de su circuito.
+- El payload almacena la cédula del presidente de mesa, el id de la elección y el circuito que le corresponde. Usa esta info para autenticar las rutas.
 
 **Request Body:**
 ```jsonc
@@ -533,7 +534,6 @@ Todos los endpoints, menos la autenticación y los resultados de las elecciones,
   "circuito": {
     "numero": 1,
     "idEleccion": 1,
-    "estado": "abierto",
     "url": "/api/elecciones/1/circuitos/1"
   }
 }
