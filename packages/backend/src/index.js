@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 import { db_manager } from "./bd/database.js";
 import { authRouter } from "./routes/r_auth.js";
-import { candidatosRouter } from "./routes/r_candidatos.js";
+// import { candidatosRouter } from "./routes/r_candidatos.js";
 import { departamentosRouter } from "./routes/r_departamentos.js";
 import { eleccionesRouter } from "./routes/r_elecciones.js";
 import { establecimientosRouter } from "./routes/r_establecimientos.js";
@@ -35,7 +35,7 @@ app.use(cors()); // espero evitar los quilombos que tuvimos en BD1
 app.use(express.json());
 
 app.use("/api/auth", authRouter);
-app.use("/api/candidatos", candidatosRouter);
+// app.use("/api/candidatos", candidatosRouter);
 app.use("/api/departamentos", departamentosRouter);
 app.use("/api/elecciones", eleccionesRouter);
 app.use("/api/establecimientos", establecimientosRouter);

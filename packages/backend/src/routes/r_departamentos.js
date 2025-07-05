@@ -5,8 +5,6 @@ import {
   deps_get_one,
 } from "../controllers/c_departamentos.js";
 import { protect } from "../middlewares/m_auth.js";
-import { protect_eleccion } from "../middlewares/m_elecciones.js";
-import { protect_circuito } from "../middlewares/m_circuitos.js";
 
 export const departamentosRouter = Router();
 

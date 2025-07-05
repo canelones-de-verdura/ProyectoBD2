@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { protect } from "../middlewares/m_auth";
-import { parts_get_all, parts_get_one } from "../controllers/c_partidos";
+import { protect } from "../middlewares/m_auth.js";
+import { parts_get_all, parts_get_one } from "../controllers/c_partidos.js";
 
 export const partidosRouter = Router();
 
