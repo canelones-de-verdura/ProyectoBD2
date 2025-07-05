@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { protect } from "../middlewares/m_auth";
-import { vot_get_one } from "../controllers/c_votantes";
+import { protect } from "../middlewares/m_auth.js";
+import { vot_get_one } from "../controllers/c_votantes.js";
 
 export const votantesRouter = Router();
 

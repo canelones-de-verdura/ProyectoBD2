@@ -1,4 +1,4 @@
-import { db_manager } from "../bd/database";
+import { db_manager } from "../bd/database.js";
 
 export async function parts_get_all(req, res) {
   try {
