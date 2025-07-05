@@ -186,7 +186,7 @@ Todos los endpoints, menos la autenticación y los resultados de las elecciones,
 {
   "numero": 1,
   "idEleccion": 1,
-  "estado": "abrir",
+  "estado": "abierto",
   "url": "/api/elecciones/1/circuitos/1"
 }
 ```

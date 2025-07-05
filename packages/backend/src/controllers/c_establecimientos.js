@@ -24,7 +24,7 @@ export async function ests_get_one(req, res) {
         .json({ error: "No sé que pudo haber causado esto." });
 
     const direccion = (
-      await db.query(
+      await db.execute(
         `SELECT
           e.id as idEstablecimiento,
           d.calle,

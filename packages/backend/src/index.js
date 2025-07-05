@@ -9,13 +9,22 @@ import { establecimientosRouter } from "./routes/r_establecimientos.js";
 import { partidosRouter } from "./routes/r_partidos.js";
 import { votantesRouter } from "./routes/r_votantes.js";
 
-const db = db_manager.getInstance(); // así ya queda la conexión pronta desde el inicio
+const db = db_manager.getInstance();
 export const global_state = {
   // guardamos la elección actual
-  eleccion_actual: (await db.query("SELECT * FROM Eleccion ORDER BY id DESC LIMIT 1"))?.pop()
+  eleccion_actual: (
+    await db.execute("SELECT * FROM Eleccion ORDER BY id DESC LIMIT 1")
+  )?.pop(),
+
+  // guardamos la hora
+  hora_actual: process.env.HORA,
+};
+
+if (!global_state.eleccion_actual || !global_state.hora_actual) {
+  console.log("Falta información en .env");
+  process.exit(1);
 }
 
-console.log(global_state)
 // TODO si las elecciones ya terminaron, habilitar solo los endpoints de
 // resultados
 
@@ -36,4 +45,3 @@ app.use("/api/votantes", votantesRouter);
 app.listen(port, () => {
   console.log(`Cuchando en ${port}`);
 });
-

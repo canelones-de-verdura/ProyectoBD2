@@ -33,7 +33,7 @@ export async function parts_get_one(req, res) {
     if (!partido)
       return res.status(404).json({ error: "Partido no encontrado." });
 
-    const candidatos = await db.query(
+    const candidatos = await db.execute(
       `SELECT
         c.ciVotante as ci,
         v.nombreCompleto

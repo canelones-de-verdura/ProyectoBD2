@@ -62,7 +62,7 @@ export async function deps_get_establecimientos(req, res) {
         .json({ error: "No hay establecimientos en este departamento." });
     }
 
-    const direcciones = await db.query(
+    const direcciones = await db.execute(
       `SELECT
         e.id as idEstablecimiento,
         d.calle,
