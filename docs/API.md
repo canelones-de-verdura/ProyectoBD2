@@ -75,7 +75,7 @@ Todos los endpoints, menos la autenticación y los resultados de las elecciones,
 }
 ```
 
-#### `GET /api/elecciones/{id}`
+#### `GET /api/elecciones/{idEleccion}`
 - Devuelve una elección específica.
 
 ```jsonc
@@ -132,6 +132,7 @@ Todos los endpoints, menos la autenticación y los resultados de las elecciones,
       "paraje": null
     }
   },
+  // OPCIONAL- A VER SI APORTA
   "mesa": {
     "numero": 1,
     "presidente": { "ci": 12345678, "nombreCompleto": "Presidente Mesa" },
@@ -159,6 +160,8 @@ Todos los endpoints, menos la autenticación y los resultados de las elecciones,
           "nombre": "Partido A",
           "url": "/api/partidos/Partido%20A"
         },
+        // -------------------------
+        // CAPAZ QUE NO, DE NUEVO
         "presidente": {
           "ci": 12345678,
           "nombreCompleto": "Candidato A Presidente",
@@ -169,11 +172,25 @@ Todos los endpoints, menos la autenticación y los resultados de las elecciones,
           "nombreCompleto": "Candidato A Vicepresidente",
           "url": "/api/candidatos/87654321"
         },
+        // -------------------------
         "votos": 150
       }
       // ...
     ]
   }
+}
+```
+
+#### `POST /api/elecciones/{idEleccion}/circuitos/{numero}/abrir`
+- Abre un circuito electoral. Devuelve un error si se intenta cerrar antes de la `horaInicio` especificada.
+**Success Response (200 OK):**
+- Devuelve el objeto del circuito actualizado con el estado "abrir".
+```jsonc
+{
+  "numero": 1,
+  "idEleccion": 1,
+  "estado": "abierto",
+  "url": "/api/elecciones/1/circuitos/1"
 }
 ```
 
@@ -235,13 +252,6 @@ Todos los endpoints, menos la autenticación y los resultados de las elecciones,
 ```jsonc
 {
   "error": "El votante con CI 12345678 no fue encontrado."
-}
-```
-
-**Error Response (400 Bad Request):**
-```jsonc
-{
-  "error": "El votante con CI 12345678 no pertenece a este circuito y el voto no fue marcado como 'observado'."
 }
 ```
 
@@ -321,6 +331,8 @@ Todos los endpoints, menos la autenticación y los resultados de las elecciones,
           "nombre": "Partido A",
           "url": "/api/partidos/Partido%20A"
         },
+        //------------------------
+        // ESTO NO SERÍA NECESARIO
         "presidente": {
           "ci": 12345678,
           "nombreCompleto": "Candidato A Presidente",
@@ -331,6 +343,7 @@ Todos los endpoints, menos la autenticación y los resultados de las elecciones,
           "nombreCompleto": "Candidato A Vicepresidente",
           "url": "/api/candidatos/87654321"
         },
+        //------------------------
         "votos": 5000
       }
       // ...
@@ -372,73 +385,10 @@ Todos los endpoints, menos la autenticación y los resultados de las elecciones,
   "votaEn": [
     {
       "idEleccion": 1,
-      "tipoEleccion": "Nacional",
-      "fechaEleccion": "2024-10-27",
-      "circuito": 1,
+      "numCircuito": 1,
       "observado": false
     },
     // ...
-  ]
-}
-```
-
----
-
-### Candidatos
-
-#### `GET /api/candidatos`
-- Devuelve todos los candidatos con su información personal, de partido y en qué elecciones participa.
-
-```jsonc
-{
-  "data": [
-    {
-      "ci": 12345678,
-      "nombreCompleto": "Candidato A",
-      "fechaNacimiento": "1980-05-20",
-      "partido": {
-        "nombre": "Partido A",
-        "url": "/api/partidos/Partido%20A"
-      },
-      "candidaturas": [
-        {
-          "idEleccion": 1,
-          "candidatura": "Presidente",
-          "url": "/api/elecciones/1"
-        }
-      ]
-    },
-    // ...
-  ]
-}
-```
-
-#### `GET /api/candidatos/{ci}`
-- Devuelve un candidato específico con toda su información.
-
-```jsonc
-{
-  "ci": 12345678,
-  "nombreCompleto": "Candidato A",
-  "credencial": "CBA 5678",
-  "fechaNacimiento": "1980-05-20",
-  "partido": {
-    "nombre": "Partido A",
-    "presidente": "Presidente Partido",
-    "numero": 10,
-    "url": "/api/partidos/Partido%20A"
-  },
-  "participaEn": [
-    {
-      "idEleccion": 1,
-      "tipoEleccion": "Nacional",
-      "candidatura": "Presidente"
-    },
-    {
-      "idEleccion": 2,
-      "tipoEleccion": "Balotaje",
-      "candidatura": "Presidente"
-    }
   ]
 }
 ```
@@ -455,7 +405,6 @@ Todos los endpoints, menos la autenticación y los resultados de las elecciones,
   "data": [
     {
       "nombre": "Partido A",
-      "numero": 10,
       "url": "/api/partidos/Partido%20A"
     },
     // ...
@@ -472,7 +421,7 @@ Todos los endpoints, menos la autenticación y los resultados de las elecciones,
   "presidente": "Presidente Partido",
   "vicepresidente": "Vicepresidente Partido",
   "numero": 10,
-  "sede": "Calle del Partido 123",
+  "calle": "Calle del Partido",
   "candidatos": [
       {
           "ci": 12345678,
@@ -517,6 +466,7 @@ Todos los endpoints, menos la autenticación y los resultados de las elecciones,
 
 #### `POST /api/auth/login`
 - Autentica a un presidente de mesa y devuelve un JWT junto con la información de su circuito.
+- El payload almacena la cédula del presidente de mesa, el id de la elección y el circuito que le corresponde. Usa esta info para autenticar las rutas.
 
 **Request Body:**
 ```jsonc
@@ -533,7 +483,6 @@ Todos los endpoints, menos la autenticación y los resultados de las elecciones,
   "circuito": {
     "numero": 1,
     "idEleccion": 1,
-    "estado": "abierto",
     "url": "/api/elecciones/1/circuitos/1"
   }
 }

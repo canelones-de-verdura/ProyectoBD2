@@ -6,8 +6,7 @@
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc",
-    "dev": "node --env-file=../../.env app/"
+    "dev": "node --env-file=../../.env src/"
   },
   "keywords": [],
   "author": "",
