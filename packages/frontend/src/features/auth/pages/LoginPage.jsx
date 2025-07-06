@@ -26,7 +26,6 @@ const LoginPage = () => {
   return (
     <BasePage>
       <div className={`formWrapper ${authCSS.formAuthWrapper}`}>
-        <img src="/ColdUCU.svg" alt="Cold UCU" className={authCSS.logo} />
         <LoginForm
           register={register}
           handleSubmit={handleSubmit}
@@ -36,11 +35,6 @@ const LoginPage = () => {
           navigate={navigate}
         />
       </div>
-      <AuthChip
-        title="¿No tenés cuenta?"
-        action="Comunicate a soporte@ucu.com"
-        redirect="https://www.ucu.edu.uy/"
-      />
     </BasePage>
   );
 };

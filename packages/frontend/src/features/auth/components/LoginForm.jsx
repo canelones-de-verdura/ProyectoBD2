@@ -12,16 +12,13 @@ const LoginForm = ({
   return (
     <>
       <form onSubmit={handleSubmit(onSubmit)} className={css.authForm}>
+      <h2>Presidente de la mesa inicie sesión</h2>
         <div className={css.formGroup}>
           <input
-            type="email"
-            placeholder="Email"
-            {...register('email', {
-              required: 'El correo electrónico es obligatorio',
-              pattern: {
-                value: /^\S+@\S+$/i,
-                message: 'Correo electrónico inválido',
-              },
+            type="text"
+            placeholder="Credencial"
+            {...register('credencial', {
+              required: 'La credencial es obligatoria',
             })}
           />
           {errors.email && <span className={css.error}>{errors.email.message}</span>}
@@ -42,28 +39,10 @@ const LoginForm = ({
             <span className={css.error}>{errors.password.message}</span>
           )}
         </div>
-        <a href="/forgot-password">¿Olvidaste tu contraseña?</a>
         <button type="submit" disabled={!isValid}>
           Iniciar Sesión
         </button>
       </form>
-      <div className="separator">
-        <span>o inicia sesión con</span>
-      </div>
-      <div className={css.socialLogin}>
-        <button
-          className={css.socialLoginOption}
-          onClick={() => navigate('/login/weba')}
-        >
-          WebAsignatura
-        </button>
-        <button
-          className={css.socialLoginOption}
-          onClick={() => navigate('/login/autogestion')}
-        >
-          AutoGestión
-        </button>
-      </div>
     </>
   );
 };

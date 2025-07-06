@@ -1,0 +1,126 @@
+.navbar {
+  width: 220px;
+  height: 100vh; /* 💡 Ocupar toda la pantalla */
+  position: fixed;
+  top: 0;
+  left: 0;
+  background-color: white;
+  border-right: 1px solid #e0e0e0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 20px 10px;
+  box-sizing: border-box;
+  z-index: 100;
+}
+
+
+
+.logo {
+  display: none;
+  margin-top: 5px;
+  margin-bottom: 20px;
+  justify-content: center;
+  align-items: center;
+}
+
+.topbar .logo {
+  display: block;
+  margin: 0;
+}
+
+.logo img {
+  width: 90%;
+}
+
+.topbar .logo img {
+  width: 110px;
+}
+
+.navigation ul {
+  display: flex;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  gap: 15px;
+}
+
+.navItem {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: #262626;
+}
+
+.navItemOnlyDesk{
+  display: none;
+}
+
+.navItem span {
+  display: none;
+  font-size: 16px;
+}
+
+.extras {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.extras .navItem {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+.extras .navItem span {
+  display: none;
+}
+
+.selected span {
+  font-weight: 600;
+}
+
+.selected svg{
+  fill: #26262642;
+}
+/* Media query para tablet y, en este caso, para desktop */
+@media (min-width: 768px){
+  .topbar{
+    display: none;
+  }
+
+  .navbar {
+    border-right: 1px solid #e0e0e0;
+        border-left: 1px solid #e0e0e0;
+
+    width: 200px;
+    display: flex;
+    flex-direction: column;
+  }
+  .logo {
+    display: inherit;
+    width: 100%;
+  }
+
+  .logo img {
+    width: 100%;
+  }
+
+  .navigation ul, .extras {
+    flex-direction: column;
+  }
+
+  .navItem span, .extras .navItem span {
+    display: block;
+  }
+
+  .navItem{
+    gap: 10px;
+  }
+
+  .navItemOnlyDesk{
+    display: block;
+  }
+}

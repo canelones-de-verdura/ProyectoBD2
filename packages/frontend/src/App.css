@@ -1,9 +1,44 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+/* app.css */
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif; /* Or your preferred font */
 }
+
+#root {
+  display: flex; /* Use flexbox for layout */
+  min-height: 100vh; /* Ensure it takes full viewport height */
+  margin: 0;
+  padding: 0;
+  /* max-width and margin: auto should be removed from #root if you want the content next to the fixed navbar */
+}
+
+.colducuApp { /* This is the div in LayoutedRoute.jsx */
+  display: flex;
+  flex-grow: 1; /* Allow it to take available space */
+  /* Remove flex-direction: column here, as we want the content and nav side-by-side initially */
+}
+
+.colducuContent { /* This wraps the Outlet content */
+  flex-grow: 1; /* Allow content to take all available space */
+  display: flex;
+  flex-direction: column; /* Stack children vertically */
+  align-items: center; /* Center horizontally */
+  justify-content: center; /* Center vertically if content is small */
+  padding: 20px; /* Add some padding around the content */
+  box-sizing: border-box; /* Include padding in width/height */
+  margin-left: 200px; /* Add margin to account for the fixed Navbar width on desktop */
+}
+
+/* Adjustments for smaller screens if TopBar is present and Navbar is horizontal/hidden */
+@media (max-width: 767px) {
+  .colducuContent {
+    margin-left: 0; /* No margin on small screens if navbar isn't fixed on the left */
+    padding-top: 60px; /* Adjust if you have a fixed TopBar */
+  }
+}
+
 
 .logo {
   height: 6em;
