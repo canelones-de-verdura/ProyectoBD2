@@ -39,21 +39,21 @@ export class vote_queue {
   async insertar() {
     try {
       const db = db_manager.getInstance();
-      const conn = db.getConnection();
-      await conn.beginTransaccion();
+      const conn = await db.getConnection();
+      if (this.votos.length === 0 && this.votantes.length === 0) return true;
+      await conn.beginTransaction();
       try {
-        // TODO QUERIES
-        for (i = 0; i < this.batchsize; ++i) {
+        for (let i = 0; i < this.votos.length; ++i) {
           await conn.execute(
             `INSERT INTO VotanteVota
               (ciVotante, IdEleccion, observado, numCircuito)
             VALUES
               (?, ?, ?, ?)`,
             [
-              votantes[i].ciVotante,
-              votantes[i].idEleccion,
-              votantes[i].observado,
-              votantes[i].numCircuito,
+              this.votantes[i].ciVotante,
+              this.votantes[i].idEleccion,
+              this.votantes[i].observado,
+              this.votantes[i].numCircuito,
             ],
           );
           const [data] = await conn.execute(
@@ -61,16 +61,20 @@ export class vote_queue {
               (tipo, horaEmitido, numeroCircuito, idEleccion)
             VALUES
               (?, CURRENT_TIME(), ?, ?)`,
-            [voto[i].tipo, voto[i].numCircuito, voto[i].idEleccion],
+            [
+              this.votos[i].tipo,
+              this.votos[i].numCircuito,
+              this.votos[i].idEleccion,
+            ],
           );
 
-          if (voto[i].tipo === tipo_voto.VALIDO) {
+          if (this.votos[i].tipo === tipo_voto.VALIDO) {
             await conn.execute(
               `INSERT INTO Valido
                 (idVoto, nombrePartido)
               VALUES
                 (?, ?)`,
-              [data.insertId, voto[i].nombrePartido],
+              [data.insertId, this.votos[i].nombrePartido],
             );
           }
         }
@@ -94,21 +98,21 @@ export class vote_queue {
 
     // chequeos voto
     if (!voto.tipo) return null;
-    if (voto.tipo === tipo.VALIDO && !voto.nombrePartido) return null;
+    if (voto.tipo === tipo_voto.VALIDO && !voto.nombrePartido) return null;
     if (
-      voto.tipo !== tipo.VALIDO &&
-      voto.tipo !== tipo.BLANCO &&
-      voto.tipo !== tipo.ANULADO
+      voto.tipo !== tipo_voto.VALIDO &&
+      voto.tipo !== tipo_voto.BLANCO &&
+      voto.tipo !== tipo_voto.ANULADO
     )
       return null;
 
     const partido = (
-      await db_manager.get_with("Partido", { nombre: voto.nombrePartido })
+      await db.get_with("Partido", { nombre: voto.nombrePartido })
     ).pop();
     if (!partido) return null;
 
     // chequeos votante
-    if (!votante.ciVotante || !votante.observado) return null;
+    if (!votante.ciVotante || votante.observado === undefined) return null;
     const persona = (
       await db.get_with("Votante", { ci: votante.ciVotante })
     ).pop();
@@ -121,10 +125,16 @@ export class vote_queue {
     const votantevota = (
       await db.get_with("VotanteVota", {
         ciVotante: votante.ciVotante,
-        idEleccion: votante.IdEleccion,
+        idEleccion: votante.idEleccion,
       })
     ).pop();
     if (votantevota)
+      return {
+        error: `El votante con CI ${votante.ciVotante} ya ha votado en esta elección.`,
+      };
+
+    // chequeamos en la queue
+    if (this.votantes.find((vot) => vot.ciVotante === votante.ciVotante))
       return {
         error: `El votante con CI ${votante.ciVotante} ya ha votado en esta elección.`,
       };
@@ -145,17 +155,20 @@ export class vote_queue {
     const circ_rango_fin = Number(circuito.rangoFinCred);
     if (!votante.observado) {
       if (
-        !circuito.serie !== persona.persona_serie ||
+        circuito.serie !== persona_serie ||
         persona_num < circ_rango_inicio ||
         persona_num > circ_rango_fin
-      )
+      ) {
+        console.log(circuito.serie);
         votante.observado = true;
+      }
     }
 
     // mandamos a la queue
     if (votante.observado) {
       this.votos_observados.push(voto);
       this.votantes_observados.push(votante);
+      console.log("?");
     } else {
       if (this.votos.length >= this.batchsize) {
         // mandamos para la queue
@@ -166,15 +179,15 @@ export class vote_queue {
         this.votantes = [];
       }
 
-      votos.push(voto);
-      votantes.push(votante);
-
-      return {
-        ciVotante: votante.ciVotante,
-        idEleccion: votante.idEleccion,
-        observado: votante.observado,
-        numCircuito: votante.numCircuito,
-      };
+      this.votos.push(voto);
+      this.votantes.push(votante);
     }
+
+    return {
+      ciVotante: votante.ciVotante,
+      idEleccion: votante.idEleccion,
+      observado: votante.observado,
+      numCircuito: votante.numCircuito,
+    };
   }
 }
