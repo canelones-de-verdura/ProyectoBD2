@@ -39,8 +39,8 @@ export class db_manager {
    * no se pueden hacer transacciones con la pool.
    * hay que llamar conn.release() cuando se termina de usar.
    */
-  getConnection() {
-    return this.pool.getConnection();
+  async getConnection() {
+    return await this.pool.getConnection();
   }
 
   async query(sql, params) {

@@ -36,7 +36,7 @@ export async function parts_get_one(req, res) {
     const candidatos = await db.execute(
       `SELECT
         c.ciVotante as ci,
-        v.nombreCompleto
+        v.nombreCompleto,
         c.candidatura,
         cpart.idEleccion
       FROM Candidato c

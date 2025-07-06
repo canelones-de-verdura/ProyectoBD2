@@ -3,9 +3,9 @@ const { sign, verify } = jwt;
 
 export class JWTPayload {
   constructor(ci, numCircuito, idEleccion) {
-    this.ci;
-    this.numCircuito;
-    this.idEleccion;
+    this.ci = ci;
+    this.numCircuito = numCircuito;
+    this.idEleccion = idEleccion;
   }
 }
 

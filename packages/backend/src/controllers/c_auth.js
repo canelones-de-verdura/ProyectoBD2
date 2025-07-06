@@ -47,7 +47,11 @@ export async function auth_controller(req, res) {
       return;
     }
 
-    const pload = new JWTPayload(ci, mesa.idEleccion, mesa.numCircuito);
+    const pload = {
+      ci: ci,
+      numCircuito: mesa.numeroCircuito,
+      idEleccion: mesa.idEleccion,
+    };
     const token = generate_token(pload);
 
     res.status(200).json({

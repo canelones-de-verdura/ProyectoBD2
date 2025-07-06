@@ -2,7 +2,8 @@ import { db_manager } from "../bd/database.js";
 
 export async function deps_get_one(req, res) {
   try {
-    const { numero } = req.params;
+    let { numero } = req.params;
+    numero = Number(numero);
     if (!numero || !Number.isInteger(numero) || numero < 0 || numero > 19)
       return res.status(400).json({ error: "Del 1 al 19" });
 
@@ -46,7 +47,8 @@ export async function deps_get_all(req, res) {
 
 export async function deps_get_establecimientos(req, res) {
   try {
-    const { numero } = req.params;
+    let { numero } = req.params;
+    numero = Number(numero);
     if (!numero || !Number.isInteger(numero) || numero < 0 || numero > 19)
       return res.status(400).json({ error: "Del 1 al 19" });
 
@@ -81,9 +83,7 @@ export async function deps_get_establecimientos(req, res) {
     }
 
     establecimientos.map((est) => {
-      const dir = direcciones.find((elem) => {
-        elem.idEstablecimiento = est.id;
-      });
+      const dir = direcciones.find((elem) => elem.idEstablecimiento === est.id);
 
       est.direccion = {
         calle: dir.calle,

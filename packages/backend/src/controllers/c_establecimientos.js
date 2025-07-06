@@ -2,7 +2,8 @@ import { db_manager } from "../bd/database.js";
 
 export async function ests_get_one(req, res) {
   try {
-    const { id } = req.params;
+    let { id } = req.params;
+    id = Number(id);
     if (!id || !Number.isInteger(id))
       return res.status(400).json({ error: "ID inválida." });
 
@@ -18,7 +19,7 @@ export async function ests_get_one(req, res) {
         numero: establecimiento.numeroDepartamento,
       })
     ).pop();
-    if (!dep)
+    if (!departamento)
       return res
         .status(404)
         .json({ error: "No sé que pudo haber causado esto." });

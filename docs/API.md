@@ -160,6 +160,8 @@ Todos los endpoints, menos la autenticación y los resultados de las elecciones,
           "nombre": "Partido A",
           "url": "/api/partidos/Partido%20A"
         },
+        // -------------------------
+        // CAPAZ QUE NO, DE NUEVO
         "presidente": {
           "ci": 12345678,
           "nombreCompleto": "Candidato A Presidente",
@@ -170,6 +172,7 @@ Todos los endpoints, menos la autenticación y los resultados de las elecciones,
           "nombreCompleto": "Candidato A Vicepresidente",
           "url": "/api/candidatos/87654321"
         },
+        // -------------------------
         "votos": 150
       }
       // ...
@@ -252,13 +255,6 @@ Todos los endpoints, menos la autenticación y los resultados de las elecciones,
 }
 ```
 
-**Error Response (400 Bad Request):**
-```jsonc
-{
-  "error": "El votante con CI 12345678 no pertenece a este circuito y el voto no fue marcado como 'observado'."
-}
-```
-
 #### `GET /api/elecciones/{idEleccion}/votos-observados`
 - Devuelve una lista de todas las constancias de voto marcadas como observadas para una elección específica.
 
@@ -335,6 +331,8 @@ Todos los endpoints, menos la autenticación y los resultados de las elecciones,
           "nombre": "Partido A",
           "url": "/api/partidos/Partido%20A"
         },
+        //------------------------
+        // ESTO NO SERÍA NECESARIO
         "presidente": {
           "ci": 12345678,
           "nombreCompleto": "Candidato A Presidente",
@@ -345,6 +343,7 @@ Todos los endpoints, menos la autenticación y los resultados de las elecciones,
           "nombreCompleto": "Candidato A Vicepresidente",
           "url": "/api/candidatos/87654321"
         },
+        //------------------------
         "votos": 5000
       }
       // ...
