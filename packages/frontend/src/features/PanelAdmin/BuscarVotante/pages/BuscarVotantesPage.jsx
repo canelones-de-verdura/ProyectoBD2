@@ -1,57 +1,100 @@
-import React, { useState, useMemo } from 'react';
-import { Container, Button, Box, TextField, InputAdornment, Checkbox, FormControlLabel, FormGroup, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
+// src/features/PanelAdmin/BuscarVotante/pages/BuscarVotantesPage.jsx (AJUSTADO)
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import { Container, Button, Box, TextField, InputAdornment, Checkbox, FormControlLabel, FormGroup, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, CircularProgress, Typography } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import TableComponent from '../../../../shared/components/TableComponent';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+import useVotantesService from '../../../../shared/services/VotantesService';
+import { useElection } from '../../../../shared/context/EleccionContext';
+import { toast } from 'react-toastify';
 
 const BuscarVotantesPage = () => {
-    const [allVotersData, setAllVotersData] = useState([]); // Almacena TODOS los datos cargados (simulados o reales)
+    const [allVotersData, setAllVotersData] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [openConfirmModal, setOpenConfirmModal] = useState(false);
     const [selectedVoterForAction, setSelectedVoterForAction] = useState(null);
     const [selectedVoteType, setSelectedVoteType] = useState('');
+    const [loading, setLoading] = useState(false);
 
     const navigate = useNavigate();
+    const location = useLocation();
+    const { getAllVotantes } = useVotantesService();
+    // NO NECESITAMOS EL HOOK DEL SERVICIO DE CIRCUITOS AQUÍ
+    // const { getCredencialRangesByCircuit } = useCircuitosService();
+    const { electionInfo } = useElection();
 
-    // Esta función simula la carga de TODOS los datos desde un "backend".
-    // Ahora carga en 'allVotersData'
-    const fetchAllSimulatedVoters = () => {
-        const simulatedData = [
-            { id: 1, credencial: 'AAA - 123456', cedula: '4.567.890-1', nombre: 'Juan Pérez', yaVoto: false },
-            { id: 2, credencial: 'BBB - 654321', cedula: '1.234.567-8', nombre: 'Ana Gómez', yaVoto: false },
-            { id: 3, credencial: 'AAA - 987654', cedula: '9.876.543-2', nombre: 'Carlos Ruiz', yaVoto: true },
-            { id: 4, credencial: 'CCC - 112233', cedula: '3.333.333-3', nombre: 'María Lopez', yaVoto: false },
-            { id: 5, credencial: 'BBB - 789012', cedula: '7.777.777-7', nombre: 'Pedro Diaz', yaVoto: true },
-        ];
-        setAllVotersData(simulatedData);
-    };
+    // Acceder directamente a los rangos y otra información del circuito desde electionInfo
+    const idEleccion = electionInfo.idEleccion;
+    const numeroCircuito = electionInfo.numeroCircuito;
+    const rangoInicioCred = electionInfo.rangoInicioCred; // <-- OBTENEMOS ESTO DEL CONTEXTO
+    const rangoFinCred = electionInfo.rangoFinCred;     // <-- OBTENEMOS ESTO DEL CONTEXTO
 
-    // Al hacer clic en buscar, primero cargamos todos los datos (si no están cargados)
-    // y luego el useMemo se encargará de filtrarlos por el searchTerm.
-    const handleSearchClick = () => {
-        // En un caso real, aquí harías tu llamada API real
-        // Si tu backend filtra, le pasas el searchTerm y el backend te devuelve los filtrados.
-        // Si tu backend no filtra y siempre devuelve todo, entonces necesitas cargar todo una vez:
-        if (allVotersData.length === 0) { // Cargar datos solo si no están cargados
-             fetchAllSimulatedVoters();
+
+    const fetchAllVotersFromApi = useCallback(async () => {
+        setLoading(true);
+        try {
+            const data = await getAllVotantes();
+            const mappedData = data.map(votante => ({
+                id: votante.ci,
+                credencial: votante.credencial,
+                cedula: votante.ci,
+                nombre: votante.nombreCompleto,
+                yaVoto: votante.yaVoto || false,
+                url: votante.url
+            }));
+            setAllVotersData(mappedData);
+        } catch (error) {
+            console.error("Error al cargar votantes:", error);
+            toast.error("Error al cargar votantes. Intente nuevamente.");
+        } finally {
+            setLoading(false);
         }
-        // No hay necesidad de setear 'votantes' aquí, 'filteredVotantes' hará el trabajo
+    }, [getAllVotantes]);
+
+
+    // ELIMINAR ESTE useEffect YA NO ES NECESARIO PARA LOS RANGOS
+    /*
+    useEffect(() => {
+        const loadCredencialRanges = async () => {
+            if (idEleccion && numeroCircuito) {
+                try {
+                    const ranges = await getCredencialRangesByCircuit(idEleccion, numeroCircuito);
+                    setCredencialRanges(ranges);
+                } catch (error) {
+                    console.error("Error al obtener los rangos de credenciales:", error);
+                    setCredencialRanges(null);
+                    toast.error("No se pudieron cargar los rangos de credenciales del circuito.");
+                }
+            } else {
+                setCredencialRanges(null);
+            }
+        };
+
+        loadCredencialRanges();
+    }, [idEleccion, numeroCircuito, getCredencialRangesByCircuit]);
+    */
+
+
+    useEffect(() => {
+        fetchAllVotersFromApi();
+    }, [location.state?.voterVotedCi, fetchAllVotersFromApi]);
+
+    const handleSearchClick = () => {
+        // ... (sin cambios)
     };
 
-    // *** MODIFICACIÓN CLAVE AQUÍ ***
     const filteredVotantes = useMemo(() => {
-        // Si no hay término de búsqueda, o si no se han cargado datos aún,
-        // la tabla estará vacía.
-        if (!searchTerm || allVotersData.length === 0) {
-            return []; // Retorna un array vacío para que la tabla se vea vacía
+        if (!searchTerm) {
+            return allVotersData;
         }
 
         const lowerCaseSearchTerm = searchTerm.toLowerCase();
         return allVotersData.filter(votante =>
-            votante.credencial.toLowerCase().includes(lowerCaseSearchTerm)
+            votante.credencial.toLowerCase().includes(lowerCaseSearchTerm) ||
+            String(votante.cedula).includes(lowerCaseSearchTerm) ||
+            votante.nombre.toLowerCase().includes(lowerCaseSearchTerm)
         );
-    }, [allVotersData, searchTerm]); // Dependencias: 'allVotersData' y 'searchTerm'
-
+    }, [allVotersData, searchTerm]);
 
     const handleInitiateVote = (row, tipoVoto) => {
         setSelectedVoterForAction(row);
@@ -62,13 +105,6 @@ const BuscarVotantesPage = () => {
     const handleConfirmVote = () => {
         setOpenConfirmModal(false);
         if (selectedVoterForAction) {
-            // Actualiza el estado local para que el checkbox se marque y los botones se deshabiliten
-            setAllVotersData(prevVoters =>
-                prevVoters.map(voter =>
-                    voter.id === selectedVoterForAction.id ? { ...voter, yaVoto: true } : voter
-                )
-            );
-
             navigate(`/votar/${selectedVoterForAction.id}/${selectedVoteType}`, {
                 state: { voter: selectedVoterForAction, type: selectedVoteType }
             });
@@ -109,7 +145,7 @@ const BuscarVotantesPage = () => {
                         color="success"
                         onClick={() => handleInitiateVote(row, 'normal')}
                         size="small"
-                        disabled={row.yaVoto}
+                        disabled={row.yaVoto || loading}
                     >
                         Normal
                     </Button>
@@ -118,7 +154,7 @@ const BuscarVotantesPage = () => {
                         color="error"
                         onClick={() => handleInitiateVote(row, 'observado')}
                         size="small"
-                        disabled={row.yaVoto}
+                        disabled={row.yaVoto || loading}
                     >
                         Observado
                     </Button>
@@ -129,15 +165,42 @@ const BuscarVotantesPage = () => {
 
     return (
         <Container sx={{ mt: 4, width: '100%' }}>
+            <Typography variant="h5" gutterBottom align="center">
+                Búsqueda de Votantes
+            </Typography>
+
+            {/* Mostrar Rangos de Credenciales (AHORA DIRECTO DEL CONTEXTO) */}
+            <Box sx={{ mb: 3, p: 2, border: '1px solid #ccc', borderRadius: '8px', bgcolor: '#f5f5f5' }}>
+                <Typography variant="h6" align="center" gutterBottom>
+                    Rango de Credenciales para este Circuito:
+                </Typography>
+                {idEleccion && numeroCircuito ? (
+                    rangoInicioCred && rangoFinCred ? ( // Verificar que los rangos existen en el contexto
+                        <Typography variant="body1" align="center">
+                            **Desde:** {rangoInicioCred} - **Hasta:** {rangoFinCred}
+                        </Typography>
+                    ) : (
+                        <Typography variant="body2" align="center" color="textSecondary">
+                            Rangos de credenciales no disponibles para el Circuito {numeroCircuito}.
+                        </Typography>
+                    )
+                ) : (
+                    <Typography variant="body2" align="center" color="textSecondary">
+                        Información de Elección o Circuito no disponible. Por favor, asegúrese de que el circuito esté habilitado.
+                    </Typography>
+                )}
+            </Box>
+
+
             <Box sx={{ mb: 2, display: 'flex', justifyContent: 'center', width: '100%' }}>
                 <TextField
-                    label="Buscar Credencial"
+                    label="Buscar Credencial, Cédula o Nombre"
                     variant="outlined"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     onKeyPress={(e) => {
                         if (e.key === 'Enter') {
-                            handleSearchClick();
+                            // handleSearchClick();
                         }
                     }}
                     sx={{ width: '80%', maxWidth: '500px' }}
@@ -158,14 +221,20 @@ const BuscarVotantesPage = () => {
                 </Button>
             </Box>
 
-            <TableComponent
-                columns={columns}
-                data={filteredVotantes} // Usa los datos filtrados
-                getRowId={(row) => row.id}
-                selectable={false}
-            />
+            {loading ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+                    <CircularProgress />
+                </Box>
+            ) : (
+                <TableComponent
+                    columns={columns}
+                    data={filteredVotantes}
+                    getRowId={(row) => row.id}
+                    selectable={false}
+                />
+            )}
 
-            {/* Modal de Confirmación */}
+            {/* Modal de Confirmación (sin cambios) */}
             <Dialog
                 open={openConfirmModal}
                 onClose={handleCloseConfirmModal}

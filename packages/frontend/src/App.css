@@ -3,41 +3,55 @@
 body {
   margin: 0;
   padding: 0;
-  font-family: Arial, sans-serif; /* Or your preferred font */
+  font-family: Arial, sans-serif;
+  height: 100vh; /* ¡Importante! Asegura que el body ocupe toda la altura de la ventana */
+  width: 100vw;
+  overflow: hidden; /* Evita scrolls inesperados */
 }
 
 #root {
-  display: flex; /* Use flexbox for layout */
-  min-height: 100vh; /* Ensure it takes full viewport height */
+  display: flex;
+  min-height: 100vh; /* ¡Importante! Asegura que #root ocupe toda la altura visible */
+  width: 100vw;
   margin: 0;
   padding: 0;
-  /* max-width and margin: auto should be removed from #root if you want the content next to the fixed navbar */
 }
 
-.colducuApp { /* This is the div in LayoutedRoute.jsx */
+.globalContainer {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column; /* Esto es para que los hijos se apilen verticalmente */
+    align-items: center; /* Centra horizontalmente el contenido (formWrapper) */
+    justify-content: center; /* ¡Importante! Centra verticalmente el contenido (formWrapper) */
+    height: 100%; /* ¡Importante! Asegura que globalContainer ocupe el 100% de la altura de su padre (#root) */
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* colducuApp y colducuContent (sin cambios mayores aquí para este problema) */
+.colducuApp {
   display: flex;
-  flex-grow: 1; /* Allow it to take available space */
-  /* Remove flex-direction: column here, as we want the content and nav side-by-side initially */
+  flex-grow: 1;
 }
 
-.colducuContent { /* This wraps the Outlet content */
-  flex-grow: 1; /* Allow content to take all available space */
+.colducuContent {
+  flex-grow: 1;
   display: flex;
-  flex-direction: column; /* Stack children vertically */
-  align-items: center; /* Center horizontally */
-  justify-content: center; /* Center vertically if content is small */
-  padding: 20px; /* Add some padding around the content */
-  box-sizing: border-box; /* Include padding in width/height */
-  margin-left: 200px; /* Add margin to account for the fixed Navbar width on desktop */
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  box-sizing: border-box;
+  margin-left: 200px;
 }
 
-/* Adjustments for smaller screens if TopBar is present and Navbar is horizontal/hidden */
 @media (max-width: 767px) {
   .colducuContent {
-    margin-left: 0; /* No margin on small screens if navbar isn't fixed on the left */
-    padding-top: 60px; /* Adjust if you have a fixed TopBar */
+    margin-left: 0;
   }
 }
+
+/* Tus otros estilos como .logo, .card, etc. */
 
 
 .logo {

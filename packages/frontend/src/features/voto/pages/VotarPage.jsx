@@ -1,130 +1,206 @@
-// src/features/PanelAdmin/votar/pages/VotarPage.jsx
+// src/features/voto/pages/VotarPage.jsx (MODIFICADO)
 import React, { useState, useEffect } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
-import { Container, Typography, Box, Paper, Button, FormControl, RadioGroup, FormControlLabel, Radio } from '@mui/material';
+import { Container, Typography, Button, Box, CircularProgress, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
+import usePartidosService from '../../../shared/services/PartidosService';
+import useVotosService from '../../../shared/services/VotoService';
+import { toast } from 'react-toastify';
 
 const VotarPage = () => {
-    const { votanteId, tipoVoto } = useParams(); // Obtiene parámetros de la URL
-    const location = useLocation(); // Obtiene el objeto location para acceder al 'state'
+    const { votanteId, tipoVoto } = useParams();
+    const location = useLocation();
     const navigate = useNavigate();
 
-    // Recupera la información del votante pasada a través del `state` de navegación
-    const voter = location.state?.voter;
+    const [voterInfo, setVoterInfo] = useState(location.state?.voter || null);
+    const [partidos, setPartidos] = useState([]);
+    const [loadingPartidos, setLoadingPartidos] = useState(true);
+    const [selectedPartido, setSelectedPartido] = useState(null);
+    const [voteConfirmationType, setVoteConfirmationType] = useState(null); // 'partido', 'blanco', 'anulado'
+    const [openConfirmVoteModal, setOpenConfirmVoteModal] = useState(false);
 
-    const [selectedList, setSelectedList] = useState('');
-    const [candidatos, setCandidatos] = useState([]); // Esto podría venir del backend
-    const [listas, setListas] = useState([]); // Esto podría venir del backend
+    const { getAllPartidos } = usePartidosService();
+    const { registerVote } = useVotosService(); // Usar el hook del servicio de votos
 
-    // Simulamos la carga de datos de las listas y candidatos
     useEffect(() => {
-        // En una aplicación real, aquí harías una llamada a tu backend
-        // para obtener las listas de acuerdo a la mesa de votación, etc.
-        const simulatedLists = [
-            { id: 'lista1', nombre: 'Lista 100 - Frente Amplio', formula: 'Presidente: Mario Delgado | Vice: Laura Fernández' },
-            { id: 'lista2', nombre: 'Lista 200 - Partido Nacional', formula: 'Presidente: Sofía Ruiz | Vice: Pablo Giménez' },
-            { id: 'lista3', nombre: 'Lista 300 - Partido Colorado', formula: 'Presidente: Ricardo Bermejo | Vice: Ana Torres' },
-            { id: 'lista4', nombre: 'Voto en blanco', formula: 'Sin candidatos' }, // Opción de voto en blanco
-        ];
-        setListas(simulatedLists);
+        // En un escenario real, si voterInfo no está en location.state (ej. al recargar),
+        // deberías hacer una llamada a la API para obtener los datos del votante usando votanteId.
+        // Por ahora, si no existe, redirigimos.
+        if (!voterInfo) {
+            toast.error("Información del votante no disponible. Redirigiendo a búsqueda.");
+            navigate('/votantes');
+            return;
+        }
 
-        // Puedes simular también candidatos específicos si es necesario, aunque la "fórmula" ya los incluye
-        const simulatedCandidatos = [
-            // Ejemplos, no necesariamente conectados a las listas de arriba
-            { id: 'cand1', nombre: 'Mario Delgado (FA)', listaId: 'lista1' },
-            { id: 'cand2', nombre: 'Sofía Ruiz (PN)', listaId: 'lista2' },
-        ];
-        setCandidatos(simulatedCandidatos);
+        const fetchPartidos = async () => {
+            try {
+                const data = await getAllPartidos();
+                setPartidos(data);
+                toast.success("Partidos cargados.");
+            } catch (error) {
+                console.error("Error al cargar partidos:", error);
+                toast.error("Error al cargar partidos. Intente nuevamente.");
+            } finally {
+                setLoadingPartidos(false);
+            }
+        };
 
-    }, []);
+        fetchPartidos();
+    }, [getAllPartidos, navigate, voterInfo]); // Asegúrate de que voterInfo esté en las dependencias si se usa aquí
 
-    const handleListSelectionChange = (event) => {
-        setSelectedList(event.target.value);
+
+    const handleSelectPartido = (partido) => {
+        setSelectedPartido(partido);
+        setVoteConfirmationType('partido');
+        setOpenConfirmVoteModal(true);
     };
 
-    const handleConfirmVote = () => {
-        // Aquí iría la lógica para REGISTRAR el voto en tu backend
-        // console.log(`Registrando voto para ${voter.nombre} (ID: ${voter.id})`);
-        // console.log(`Tipo de voto: ${tipoVoto}`);
-        // console.log(`Lista seleccionada: ${selectedList}`);
-
-        // Por ahora, solo una alerta y luego redirigimos
-        alert(`Voto '${tipoVoto}' registrado para ${voter.nombre} en la lista: ${selectedList || 'No seleccionada'}. ¡Simulación exitosa!`);
-
-        // Después de registrar el voto, podrías redirigir al usuario de vuelta a la página de búsqueda
-        navigate('/votantes'); // O a una página de confirmación de voto
+    const handleSelectBlanco = () => {
+        setSelectedPartido(null); // Asegurar que no haya partido seleccionado
+        setVoteConfirmationType('blanco');
+        setOpenConfirmVoteModal(true);
     };
 
-    if (!voter) {
+    const handleSelectAnulado = () => {
+        setSelectedPartido(null); // Asegurar que no haya partido seleccionado
+        setVoteConfirmationType('anulado');
+        setOpenConfirmVoteModal(true);
+    };
+
+    const handleConfirmVote = async () => {
+        setOpenConfirmVoteModal(false);
+
+        if (!voterInfo) {
+            toast.error("No hay información del votante para registrar el voto.");
+            return;
+        }
+
+        const voteData = {
+            ciVotante: voterInfo.id, // Usamos 'id' que mapeamos a 'ci' en BuscarVotantesPage
+            observado: tipoVoto === 'observado', // 'true' si el tipoVoto es 'observado'
+            voto: {}
+        };
+
+        if (voteConfirmationType === 'partido' && selectedPartido) {
+            voteData.voto.tipo = "Valido";
+            voteData.voto.nombrePartido = selectedPartido.nombre;
+        } else if (voteConfirmationType === 'blanco') {
+            voteData.voto.tipo = "Blanco";
+        } else if (voteConfirmationType === 'anulado') {
+            voteData.voto.tipo = "Anulado";
+        } else {
+            toast.error("Tipo de voto no válido o partido no seleccionado.");
+            return;
+        }
+
+        try {
+            // Llamada al servicio para registrar el voto en el backend
+            await registerVote(voteData);
+
+            toast.success(`Voto ${voteData.voto.tipo} para ${voterInfo.nombre} registrado exitosamente.`);
+
+            // Redirigir de vuelta a la página de búsqueda de votantes
+            // Pasamos un estado para indicar que un votante ha votado, lo cual puede disparar una recarga en BuscarVotantesPage
+            navigate('/votantes', { state: { voterVotedCi: voterInfo.id } });
+
+        } catch (error) {
+            console.error("Error al registrar voto:", error);
+            const errorMessage = error.response?.data?.error || "Error al registrar el voto. Intente nuevamente.";
+            toast.error(errorMessage);
+        } finally {
+            // Limpiar estados después de la acción (éxito o fallo)
+            setSelectedPartido(null);
+            setVoteConfirmationType(null);
+        }
+    };
+
+    const handleCloseConfirmVoteModal = () => {
+        setOpenConfirmVoteModal(false);
+        setSelectedPartido(null);
+        setVoteConfirmationType(null);
+    };
+
+    if (loadingPartidos) {
         return (
-            <Container sx={{ mt: 4 }}>
-                <Typography variant="h6" color="error">
-                    Error: Información del votante no disponible.
-                </Typography>
-                <Button variant="contained" onClick={() => navigate('/votantes')}>
-                    Volver a Buscar Votantes
-                </Button>
+            <Container sx={{ mt: 4, textAlign: 'center' }}>
+                <CircularProgress />
+                <Typography variant="h6">Cargando partidos...</Typography>
             </Container>
         );
     }
 
     return (
-        <Container sx={{ mt: 4, width: '100%', maxWidth: '800px' }}>
-            <Typography variant="h4" component="h1" gutterBottom align="center">
-                Emitir Voto
+        <Container sx={{ mt: 4, width: '100%', textAlign: 'center' }}>
+            <Typography variant="h4" gutterBottom>
+                Proceso de Voto {tipoVoto === 'normal' ? 'Normal' : 'Observado'}
             </Typography>
-            <Typography variant="h6" component="h2" gutterBottom>
-                Votante: <Box component="span" fontWeight="bold">{voter.nombre}</Box> (Cédula: {voter.cedula})
-            </Typography>
-            <Typography variant="body1" gutterBottom>
-                Tipo de Voto: <Box component="span" fontWeight="bold">{tipoVoto.toUpperCase()}</Box>
+            <Typography variant="h5" gutterBottom>
+                Votante: {voterInfo.nombre} (CI: {voterInfo.cedula})
             </Typography>
 
-            <Paper elevation={3} sx={{ p: 3, mt: 3 }}>
-                <Typography variant="h5" gutterBottom>
-                    Seleccione una Lista:
-                </Typography>
-                <FormControl component="fieldset" sx={{ width: '100%' }}>
-                    <RadioGroup
-                        aria-label="listas"
-                        name="listas-radio-buttons-group"
-                        value={selectedList}
-                        onChange={handleListSelectionChange}
-                    >
-                        {listas.map((list) => (
-                            <Box key={list.id} sx={{ mb: 1, p: 1, border: '1px solid #eee', borderRadius: '4px' }}>
-                                <FormControlLabel
-                                    value={list.id}
-                                    control={<Radio />}
-                                    label={
-                                        <Box>
-                                            <Typography variant="subtitle1" fontWeight="bold">{list.nombre}</Typography>
-                                            <Typography variant="body2" color="text.secondary">{list.formula}</Typography>
-                                        </Box>
-                                    }
-                                />
-                            </Box>
-                        ))}
-                    </RadioGroup>
-                </FormControl>
+            <Typography variant="h6" sx={{ mt: 4, mb: 2 }}>
+                Seleccione un partido o tipo de voto:
+            </Typography>
 
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}>
-                    <Button
-                        variant="outlined"
-                        color="error"
-                        onClick={() => navigate('/votantes')} // Volver a la página anterior
-                    >
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 2 }}>
+                {partidos.length > 0 ? (
+                    partidos.map((partido) => (
+                        <Button
+                            key={partido.nombre}
+                            variant="contained"
+                            size="large"
+                            onClick={() => handleSelectPartido(partido)}
+                            sx={{ minWidth: '150px', height: '80px', fontSize: '1.2rem' }}
+                        >
+                            {partido.nombre}
+                        </Button>
+                    ))
+                ) : (
+                    <Typography variant="body1">No se encontraron partidos.</Typography>
+                )}
+
+                <Button
+                    variant="outlined"
+                    color="primary"
+                    size="large"
+                    onClick={handleSelectBlanco}
+                    sx={{ minWidth: '150px', height: '80px', fontSize: '1.2rem' }}
+                >
+                    Voto Blanco
+                </Button>
+                <Button
+                    variant="outlined"
+                    color="secondary"
+                    size="large"
+                    onClick={handleSelectAnulado}
+                    sx={{ minWidth: '150px', height: '80px', fontSize: '1.2rem' }}
+                >
+                    Voto Anulado
+                </Button>
+            </Box>
+
+            {/* Modal de Confirmación de Voto */}
+            <Dialog
+                open={openConfirmVoteModal}
+                onClose={handleCloseConfirmVoteModal}
+                aria-labelledby="confirm-vote-dialog-title"
+                aria-describedby="confirm-vote-dialog-description"
+            >
+                <DialogTitle id="confirm-vote-dialog-title">{"Confirmar Voto"}</DialogTitle>
+                <DialogContent>
+                    <DialogContentText id="confirm-vote-dialog-description">
+                        ¿Confirma el voto **{voteConfirmationType === 'partido' ? selectedPartido?.nombre : voteConfirmationType === 'blanco' ? 'Blanco' : 'Anulado'}**
+                        de tipo **{tipoVoto}** para el votante **{voterInfo.nombre}** (CI: {voterInfo.cedula})?
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleCloseConfirmVoteModal} color="error" variant="outlined">
                         Cancelar
                     </Button>
-                    <Button
-                        variant="contained"
-                        color="primary"
-                        onClick={handleConfirmVote}
-                        disabled={!selectedList} // Deshabilitar si no hay lista seleccionada
-                    >
+                    <Button onClick={handleConfirmVote} color="success" variant="contained" autoFocus>
                         Confirmar Voto
                     </Button>
-                </Box>
-            </Paper>
+                </DialogActions>
+            </Dialog>
         </Container>
     );
 };

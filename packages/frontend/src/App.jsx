@@ -1,3 +1,4 @@
+// src/App.jsx
 import { useState } from 'react'
 import { AuthContext, AuthProvider } from './shared/context/AuthContext'
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
@@ -9,6 +10,11 @@ import CerrarCircuitoPage from './features/PanelAdmin/cerrarcircuito/CerrarPage'
 import VotarPage from './features/voto/pages/VotarPage';
 import EscrutinioCircuitoPage from './features/escrutinioCircuito/pages/EscrutinioCircuitoPage';
 import EscrutinioFinalPage from './features/escrutinioTotal/pages/EscrutinioTotal';
+import { ElectionProvider } from './shared/context/EleccionContext';
+
+// Nuevas importaciones para la Corte
+import CorteLoginPage from './features/auth/Corte/Pages/CorteLoginPage';
+import CorteDashboardPage from './features/auth/Corte/Pages/CorteDashboardPage';
 
 
 import './App.css'
@@ -18,27 +24,37 @@ import LoginPage from './features/auth/pages/LoginPage'
 function App() {
 
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route element={<UnAuthRoute />}>
-            <Route path="/login" element={<LoginPage />} />
-          </Route>
-          <Route element={<LayoutedRoute />}>
-            <Route path="/inicio" element={<HabilitarCircuitoPage />} />
-            <Route path="/" element={<Navigate to="/inicio" />} />
-            <Route path="/votantes" element={<BuscarVotantesPage />} />
-            <Route path="/circuito" element={<CerrarCircuitoPage />} />
-            <Route path="/votar/:votanteId/:tipoVoto" element={<VotarPage />} />
-          </Route>
-          <Route path="/EscrutinioCircuito" element={<EscrutinioCircuitoPage />} /> {/* <--- Nueva ruta */}
-                      <Route path="/EscrutinioFinal" element={<EscrutinioFinalPage />} /> {/* <--- Nueva ruta */}
+    <ElectionProvider>
+      <AuthProvider>
+        <BrowserRouter>
+          <Routes>
+            {/* Rutas sin autenticación (o con autenticación específica) */}
+            <Route element={<UnAuthRoute />}>
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/Corte" element={<CorteLoginPage />} /> {/* <-- Nueva ruta de login para la Corte */}
+            </Route>
 
-        </Routes>
-      </BrowserRouter>
-    </AuthProvider>
+            {/* Rutas que usan el LayoutedRoute (con Navbar) */}
+            <Route element={<LayoutedRoute />}>
+              <Route path="/" element={<Navigate to="/inicio" />} />
+              <Route path="/votantes" element={<BuscarVotantesPage />} />
+              <Route path="/circuito" element={<CerrarCircuitoPage />} />
+              <Route path="/votar/:votanteId/:tipoVoto" element={<VotarPage />} />
+            </Route>
+
+            {/* Rutas que no usan LayoutedRoute pero pueden ser autenticadas o públicas */}
+            {/* Estas rutas pueden necesitar su propio manejo de layout/centrado si no usan LayoutedRoute */}
+            <Route path="/inicio" element={<HabilitarCircuitoPage />} />
+            <Route path="/EscrutinioCircuito" element={<EscrutinioCircuitoPage />} />
+            <Route path="/EscrutinioFinal" element={<EscrutinioFinalPage />} />
+            <Route path="/CorteDashboard" element={<CorteDashboardPage />} /> {/* <-- Nueva ruta del dashboard de la Corte */}
+
+          </Routes>
+        </BrowserRouter>
+      </AuthProvider>
+    </ElectionProvider>
+
   )
 }
 
 export default App
-

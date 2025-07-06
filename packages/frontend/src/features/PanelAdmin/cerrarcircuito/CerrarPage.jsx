@@ -1,3 +1,4 @@
+// src/features/PanelAdmin/cerrarcircuito/HabilitarPage.jsx (Anteriormente CerrarCircuitoPage)
 import React, { useState } from 'react';
 import {
     Container,
@@ -5,50 +6,61 @@ import {
     Button,
     Box,
     LinearProgress,
-    Dialog,           // Importamos Dialog
-    DialogActions,    // Importamos DialogActions
-    DialogContent,    // Importamos DialogContent
-    DialogContentText, // Importamos DialogContentText
-    DialogTitle       // Importamos DialogTitle
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogContentText,
+    DialogTitle
 } from '@mui/material';
 import { toast } from 'react-toastify';
-import { useNavigate } from 'react-router-dom'; // Importamos useNavigate
+import { useNavigate } from 'react-router-dom';
+import { useElection } from '../../../shared/context/EleccionContext';
+import useCircuitService from '../../../shared/services/CircuitService';
 
-const CerrarCircuitoPage = () => {
+const CerrarCircuitoPage = () => { // Mantengo el nombre del componente como CerrarCircuitoPage para mayor claridad
     const [loading, setLoading] = useState(false);
-    const [openConfirmModal, setOpenConfirmModal] = useState(false); // Estado para abrir/cerrar el modal de confirmación
+    const [openConfirmModal, setOpenConfirmModal] = useState(false);
 
-    const navigate = useNavigate(); // Hook para la navegación
+    const navigate = useNavigate();
+    const { electionInfo, updateElectionInfo } = useElection(); // Usar el contexto
+    const { closeCircuit } = useCircuitService(); // Usar el servicio para cerrar circuito
 
-    // Función que se llama cuando se hace clic en el botón "Cerrar Circuito"
+    // Comprobación para saber si tenemos la información necesaria
+    const isElectionInfoReady = electionInfo.idEleccion !== null && electionInfo.numeroCircuito !== null;
+
     const handleOpenConfirmModal = () => {
-        setOpenConfirmModal(true); // Abre el modal de confirmación
+        if (!isElectionInfoReady) {
+            toast.warn('La información de la elección y circuito no está disponible. Por favor, inicie sesión o asegúrese de que haya sido cargada.');
+            return;
+        }
+        setOpenConfirmModal(true);
     };
 
-    // Función para manejar la confirmación dentro del modal
     const handleConfirmCerrar = async () => {
-        setOpenConfirmModal(false); // Cierra el modal primero
-        setLoading(true); // Activa el loading
+        setOpenConfirmModal(false);
+        setLoading(true);
+
+        const { idEleccion, numeroCircuito } = electionInfo; // Obtener del contexto
 
         try {
-            // 🔧 Lógica real cuando tengas el servicio para CERRAR el circuito:
-            // await cerrarCircuitoService(); // Asumiendo que ahora es un servicio de 'cerrar'
+            const response = await closeCircuit(idEleccion, numeroCircuito); // Llama al servicio real
 
-            await new Promise((r) => setTimeout(r, 1500)); // Simula un request más largo
+            toast.success(`Circuito ${numeroCircuito} cerrado correctamente. Redirigiendo a Escrutinio...`);
+            // Opcional: Actualizar el estado del circuito en el contexto. Hacer???
+            updateElectionInfo({ estadoCircuito: response.estado }); // Asumiendo que response.estado existe
 
-            toast.success('Circuito cerrado correctamente. Redirigiendo a Escrutinio...');
-            // Después de un éxito simulado, redirige a /EscrutinioCircuito
             navigate('/EscrutinioCircuito');
 
         } catch (error) {
-            toast.error('Error al cerrar el circuito. Por favor, intente de nuevo.');
+            // Manejo de errores específicos del backend
+            const errorMessage = error.response?.data?.detail || 'Error al cerrar el circuito. Intente de nuevo.';
+            toast.error(errorMessage);
             console.error("Error al cerrar circuito:", error);
         } finally {
-            setLoading(false); // Desactiva el loading
+            setLoading(false);
         }
     };
 
-    // Función para cerrar el modal sin confirmar
     const handleCloseConfirmModal = () => {
         setOpenConfirmModal(false);
     };
@@ -61,6 +73,11 @@ const CerrarCircuitoPage = () => {
             <Typography variant="body1" sx={{ mb: 4 }}>
                 ¿Desea cerrar el circuito actual? Una vez cerrado, no se podrá volver atrás.
                 Esta acción es irreversible.
+                <br />
+                {isElectionInfoReady ?
+                    `Circuito: ${electionInfo.numeroCircuito}, Elección: ${electionInfo.idEleccion}` :
+                    <Typography color="warning.main" variant="caption">Información de elección/circuito no cargada.</Typography>
+                }
             </Typography>
 
             {loading && (
@@ -73,13 +90,12 @@ const CerrarCircuitoPage = () => {
                 variant="contained"
                 color="primary"
                 size="large"
-                onClick={handleOpenConfirmModal} // Llama a la función para abrir el modal
-                disabled={loading} // Deshabilita el botón mientras carga
+                onClick={handleOpenConfirmModal}
+                disabled={loading || !isElectionInfoReady}
             >
                 Cerrar Circuito
             </Button>
 
-            {/* Modal de Confirmación */}
             <Dialog
                 open={openConfirmModal}
                 onClose={handleCloseConfirmModal}
@@ -89,10 +105,10 @@ const CerrarCircuitoPage = () => {
                 <DialogTitle id="confirm-close-dialog-title">{"Confirmar Cierre de Circuito"}</DialogTitle>
                 <DialogContent>
                     <DialogContentText id="confirm-close-dialog-description">
-                        Esta acción cerrará el circuito de forma permanente y redirigirá a la página de escrutinio.
-                        <br/><br/>
+                        Esta acción cerrará el Circuito: <Box component="span" fontWeight="bold">{electionInfo.numeroCircuito}</Box> de la Elección: <Box component="span" fontWeight="bold">{electionInfo.idEleccion}</Box> de forma permanente y redirigirá a la página de escrutinio.
+                        <br /><br />
                         **¡ADVERTENCIA: Esta acción es irreversible!**
-                        <br/><br/>
+                        <br /><br />
                         ¿Está seguro que desea continuar?
                     </DialogContentText>
                 </DialogContent>
