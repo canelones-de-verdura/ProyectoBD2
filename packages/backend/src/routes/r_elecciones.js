@@ -1,25 +1,18 @@
 import { Router } from "express";
+import {
+  el_get_all,
+  el_get_one,
+  circ_get_all,
+  circ_get_one,
+  circ_open,
+  circ_close,
+} from "../controllers/c_elecciones.js";
 
 export const eleccionesRouter = Router();
 
-eleccionesRouter.get("/"); // pronto
-
-eleccionesRouter.get("/:idEleccion"); // pronto
-
-eleccionesRouter.get("/:idEleccion/resultados");
-
-eleccionesRouter.get("/:idEleccion/votos-observados");
-
-eleccionesRouter.post("/:idEleccion/votos-observados/:ciVotante");
-
-eleccionesRouter.get("/:idEleccion/circuitos"); // pronto
-
-eleccionesRouter.get("/:idEleccion/circuitos/:numero"); // pronto
-
-eleccionesRouter.post("/:idEleccion/circuitos/:numero/abrir"); // pronto
-
-eleccionesRouter.post("/:idEleccion/circuitos/:numero/cerrar"); // pronto
-
-eleccionesRouter.post("/:idEleccion/circuitos/:numero/votar");
-
-eleccionesRouter.get("/:idEleccion/circuitos/:numero/resultados");
+eleccionesRouter.get("/", el_get_all);
+eleccionesRouter.get("/:idEleccion", el_get_one);
+eleccionesRouter.get("/:idEleccion/circuitos", circ_get_all);
+eleccionesRouter.get("/:idEleccion/circuitos/:numero", circ_get_one);
+eleccionesRouter.post("/:idEleccion/circuitos/:numero/abrir", circ_open);
+eleccionesRouter.post("/:idEleccion/circuitos/:numero/cerrar", circ_close);

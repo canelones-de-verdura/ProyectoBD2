@@ -1,5 +1,5 @@
-import { global_state } from "..";
-import { db_manager } from "../bd/database";
+import { global_state } from "../index.js";
+import { db_manager } from "../bd/database.js";
 
 export async function el_get_all(req, res) {
   try {

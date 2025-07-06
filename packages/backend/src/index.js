@@ -31,7 +31,8 @@ if (!global_state.eleccion_actual || !global_state.hora_actual) {
 const app = express();
 const port = 3000;
 
-app.use(cors()); // espero evitar los quilombos que tuvimos en BD1
+//Esto permite que el frontend (en localhost:5173) pueda hablar con el backend (en localhost:3000) sin errores del navegador.
+app.use(cors()); 
 app.use(express.json());
 
 app.use("/api/auth", authRouter);
