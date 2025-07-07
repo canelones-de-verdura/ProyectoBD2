@@ -1,9 +1,58 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+/* app.css */
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+  height: 100vh; /* ¡Importante! Asegura que el body ocupe toda la altura de la ventana */
+  width: 100vw;
+  overflow: hidden; /* Evita scrolls inesperados */
 }
+
+#root {
+  display: flex;
+  min-height: 100vh; /* ¡Importante! Asegura que #root ocupe toda la altura visible */
+  width: 100vw;
+  margin: 0;
+  padding: 0;
+}
+
+.globalContainer {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column; /* Esto es para que los hijos se apilen verticalmente */
+    align-items: center; /* Centra horizontalmente el contenido (formWrapper) */
+    justify-content: center; /* ¡Importante! Centra verticalmente el contenido (formWrapper) */
+    height: 100%; /* ¡Importante! Asegura que globalContainer ocupe el 100% de la altura de su padre (#root) */
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* colducuApp y colducuContent (sin cambios mayores aquí para este problema) */
+.colducuApp {
+  display: flex;
+  flex-grow: 1;
+}
+
+.colducuContent {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  box-sizing: border-box;
+  margin-left: 200px;
+}
+
+@media (max-width: 767px) {
+  .colducuContent {
+    margin-left: 0;
+  }
+}
+
+/* Tus otros estilos como .logo, .card, etc. */
+
 
 .logo {
   height: 6em;

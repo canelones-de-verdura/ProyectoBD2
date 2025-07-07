@@ -322,7 +322,7 @@ export async function el_resultados(req, res) {
 
     // si ya se cerraron todos los circuitos, avisamos a vote_queue que envíe todo
     const vq = vote_queue.getInstance();
-    vq.insertar();
+    await vq.insertar();
 
     // escrutinio
     const votos = await db.get_with("Voto", { idEleccion: idEleccion });

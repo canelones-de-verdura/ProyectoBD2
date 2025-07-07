@@ -1,0 +1,74 @@
+/* Auth.module.css */
+
+.formAuthWrapper {
+    width: 100%; /* Ocupa el 100% del ancho disponible de su padre */
+    display: flex; /* Para centrar el authForm dentro de él */
+    justify-content: center; /* Centra authForm horizontalmente */
+    align-items: center; /* Centra authForm verticalmente (si es necesario) */
+    padding: 50px 20px !important; /* Mantén tu padding */
+    box-sizing: border-box; /* Para incluir padding en el 100% width */
+}
+
+.authForm {
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    /* Elimina width: 100%; para que max-width funcione como un tope */
+    max-width: 400px; /* Define un ancho máximo para el formulario. Esto es clave para que no se estire demasiado y parezca "flotante". */
+    width: 90%; /* Un ancho flexible que no exceda el max-width, útil para pantallas más pequeñas */
+    padding: 20px; /* Un poco de padding interno para el formulario */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Sombra para darle un aspecto de "tarjeta" */
+    border-radius: 8px; /* Bordes redondeados */
+    background-color: white; /* Fondo blanco para el formulario */
+    gap: 10px; /* Espacio entre los elementos del formulario */
+}
+
+.authForm a {
+    text-align: end;
+    color: var(--separator-color);
+    text-decoration: none;
+}
+
+.socialLogin {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+}
+
+.socialLoginOption {
+    background-color: var(--button-secondary);
+    color: var(--button-on-secondary);
+    width: 100%;
+}
+
+.socialLoginOption:hover {
+    background-color: var(--button-secondary-hover) !important;
+}
+
+
+.miniForm {
+    flex-direction: row !important;
+    gap: 10px;
+}
+
+.miniForm a {
+    font-weight: 800;
+    text-decoration: none;
+    color: var(--color-primary);
+}
+
+.logo {
+    width: 60%;
+    margin-bottom: 20px;
+}
+
+.formGroup{
+    display: flex;
+    flex-direction: column;
+}
+
+.formGroup span {
+    color: var(--color-error);
+}

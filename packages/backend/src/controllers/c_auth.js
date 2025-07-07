@@ -60,7 +60,7 @@ export async function auth_controller(req, res) {
         circuito: {
           numero: mesa.numeroCircuito,
           idEleccion: mesa.idEleccion,
-          url: `/api/elecciones/${mesa.idEleccion}/circuitos/${mesa.numeroCircuito}`,
+          url: `elecciones/${mesa.idEleccion}/circuitos/${mesa.numeroCircuito}`,
         },
       },
     });
