@@ -1,4 +1,5 @@
 import { db_manager } from "../bd/database.js";
+import { global_state } from "../index.js";
 
 export async function vot_get_one(req, res) {
   try {
@@ -40,6 +41,15 @@ export async function vot_get_all(req, res) {
     votantes.map((votante) => {
       votante.url = `/api/votantes/${votante.ci}`;
     });
+
+    const votan = await db.get_all("VotanteVota");
+    votan.filter((vota) => vota.idEleccion === global_state.eleccion_actual.id);
+    votantes.map(
+      (votante) =>
+        (votante.yaVoto = !votan.find((vota) => vota.ciVotante === votante.ci)
+          ? false
+          : true),
+    );
 
     res.status(200).json({
       data: votantes,
