@@ -34,7 +34,6 @@ const CorteLoginPage = () => {
             // --- FIN SIMULACIÓN ---
 
         } catch (error) {
-            toast.error(error.message || 'Error al iniciar sesión de la Corte.');
             console.error('Corte Login error:', error);
         } finally {
             setLoading(false);

@@ -1,5 +1,7 @@
 // src/App.jsx
 import { useState } from 'react'
+import { ToastContainer } from 'react-toastify';
+
 import { AuthContext, AuthProvider } from './shared/context/AuthContext'
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import HabilitarCircuitoPage from './features/habilitarCircuito/pages/HabilitarPage';
@@ -27,6 +29,7 @@ function App() {
     <ElectionProvider>
       <AuthProvider>
         <BrowserRouter>
+            <ToastContainer />
           <Routes>
             {/* Rutas sin autenticación (o con autenticación específica) */}
             <Route element={<UnAuthRoute />}>
@@ -41,9 +44,6 @@ function App() {
               <Route path="/circuito" element={<CerrarCircuitoPage />} />
               <Route path="/votar/:votanteId/:tipoVoto" element={<VotarPage />} />
             </Route>
-
-            {/* Rutas que no usan LayoutedRoute pero pueden ser autenticadas o públicas */}
-            {/* Estas rutas pueden necesitar su propio manejo de layout/centrado si no usan LayoutedRoute */}
             <Route path="/inicio" element={<HabilitarCircuitoPage />} />
             <Route path="/EscrutinioCircuito" element={<EscrutinioCircuitoPage />} />
             <Route path="/EscrutinioFinal" element={<EscrutinioFinalPage />} />

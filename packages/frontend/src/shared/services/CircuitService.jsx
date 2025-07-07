@@ -15,7 +15,7 @@ const useCircuitService = () => {
         const url = `elecciones/${idEleccion}/circuitos/${numeroCircuito}/abrir`;
         try {
             // El endpoint es POST y no necesita data en el body.
-            const response = await doRequest(url, 'POST', null, true); // Asumiendo que requiere token
+            const response = await doRequest(url, 'POST', {}, true); 
             return response.data; // Devuelve solo la data de la respuesta
         } catch (error) {
             console.error(`Error al abrir el circuito ${numeroCircuito} para la elección ${idEleccion}:`, error);
@@ -34,8 +34,8 @@ const useCircuitService = () => {
         const url = `elecciones/${idEleccion}/circuitos/${numeroCircuito}/cerrar`;
         try {
             // El endpoint es POST y no necesita data en el body.
-            const response = await doRequest(url, 'POST', null, true); // Asumiendo que requiere token
-            return response.data; // Devuelve solo la data de la respuesta
+            const response = await doRequest(url, 'POST', {}, true); // Asumiendo que requiere token
+            return response; // Devuelve solo la data de la respuesta
         } catch (error) {
             console.error(`Error al cerrar el circuito ${numeroCircuito} para la elección ${idEleccion}:`, error);
             throw error; // Re-lanza el error para que el componente lo maneje

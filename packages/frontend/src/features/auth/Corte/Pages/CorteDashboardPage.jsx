@@ -21,7 +21,6 @@ const CorteDashboardPage = () => {
 
     const fetchObservedVotes = useCallback(async () => {
         if (!idEleccion) {
-            toast.warn('ID de elección no disponible para cargar votos observados.');
             setLoading(false);
             return;
         }
@@ -41,12 +40,10 @@ const CorteDashboardPage = () => {
 
             // Redirigir si la tabla está vacía
             if (mappedData.length === 0) {
-                toast.info('No hay votos observados pendientes. Redirigiendo a Escrutinio Total.');
                 navigate('/EscrutinioFinal'); // Redirige a EscrutinioTotal
             }
 
         } catch (error) {
-            toast.error('Error al cargar votos observados.');
             console.error("Error fetching observed votes:", error);
         } finally {
             setLoading(false);
@@ -65,7 +62,6 @@ const CorteDashboardPage = () => {
     const handleConfirmAction = async () => {
         setOpenConfirmModal(false);
         if (!actionToPerform || !idEleccion) {
-            toast.error('Error: Acción o ID de elección no definidos.');
             return;
         }
 
@@ -78,7 +74,6 @@ const CorteDashboardPage = () => {
             fetchObservedVotes();
         } catch (error) {
             const errorMessage = error.response?.data?.error || `Error al ${accion} el voto observado.`;
-            toast.error(errorMessage);
             console.error(`Error al ${accion} voto observado:`, error);
         } finally {
             setLoading(false); // Desactivar loading

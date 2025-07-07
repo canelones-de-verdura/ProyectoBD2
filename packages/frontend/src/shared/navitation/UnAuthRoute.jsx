@@ -8,7 +8,7 @@ const UnAuthRoute = () => {
 
     useEffect(() => {
         if (user) {
-            navigator('/usuarios');
+            navigator('/inicio');
         }
     }, [user, navigator]);
 

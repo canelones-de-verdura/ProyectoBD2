@@ -11,8 +11,8 @@ const useVotantesService = () => {
      */
     const getAllVotantes = async () => {
         try {
-            const response = await doRequest("votantes", "GET", null, true); // Requiere token
-            return response.data.data; // Asumiendo que la respuesta es { "data": [...] }
+            const response = await doRequest("votantes", "GET", null, true); 
+            return response; 
         } catch (error) {
             console.error("Error al obtener votantes:", error);
             throw error;

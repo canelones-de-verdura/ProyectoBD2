@@ -1,10 +1,11 @@
-// src/shared/services/ResultsService.js
+import { useCallback } from 'react';
+import { toast } from 'react-toastify'; 
 import useApi from "../hooks/useApi";
 import usePartyService from "./PartyService";
 
 const useResultsService = () => {
     const { doRequest } = useApi();
-    const { getPartyDetails } = usePartyService(); // Obtener la función para detalles del partido
+    const { getPartyDetails } = usePartyService();
 
     /**
      * Función auxiliar para enriquecer las fórmulas con datos de presidente/vicepresidente.
@@ -12,48 +13,45 @@ const useResultsService = () => {
      * @param {Array} formulas - El array de fórmulas recibidas del endpoint de resultados.
      * @returns {Promise<Array>} El array de fórmulas enriquecido con presidente y vicepresidente.
      */
-    const enrichFormulasWithCandidateDetails = async (formulas) => {
+    const enrichFormulasWithCandidateDetails = useCallback(async (formulas) => {
         if (!formulas || formulas.length === 0) {
             return [];
         }
 
         const enrichedFormulasPromises = formulas.map(async (formula) => {
             try {
-                // Obtenemos los detalles del partido usando el nombre del partido
                 const partyDetails = await getPartyDetails(formula.partido.nombre);
-
-                // Mapeamos los candidatos del partido a presidente y vicepresidente
-                const presidenteCandidato = partyDetails.candidatos.find(c => c.candidatura === 'Presidente');
-                const vicepresidenteCandidato = partyDetails.candidatos.find(c => c.candidatura === 'Vicepresidente');
+                const presidenteCandidato = partyDetails?.candidatos?.find(c => c.candidatura === 'Presidente');
+                const vicepresidenteCandidato = partyDetails?.candidatos?.find(c => c.candidatura === 'Vicepresidente');
 
                 return {
                     ...formula,
                     presidente: presidenteCandidato ? {
                         ci: presidenteCandidato.ci,
                         nombreCompleto: presidenteCandidato.nombreCompleto,
-                        url: `/api/candidatos/${presidenteCandidato.ci}` // Ajusta la URL si es diferente
+                        url: `/api/candidatos/${presidenteCandidato.ci}`
                     } : null,
                     vicepresidente: vicepresidenteCandidato ? {
                         ci: vicepresidenteCandidato.ci,
                         nombreCompleto: vicepresidenteCandidato.nombreCompleto,
-                        url: `/api/candidatos/${vicepresidenteCandidato.ci}` // Ajusta la URL si es diferente
+                        url: `/api/candidatos/${vicepresidenteCandidato.ci}`
                     } : null,
                 };
             } catch (error) {
-                console.warn(`No se pudieron obtener detalles para el partido "${formula.partido.nombre}":`, error);
-                // Si falla la obtención de detalles del partido, devolvemos la fórmula original
-                // o con campos nulos para presidente/vicepresidente para no bloquear todo.
+                const errorMessage = error.response?.data?.message || `Error al obtener detalles para el partido "${formula.partido.nombre}".`;
+                console.warn(errorMessage, error);
+                // Aquí usamos toast.warn en lugar de toast.error porque es un problema por fórmula,
+                // no un fallo total del escrutinio. Se notificará, pero no detendrá la carga general.
                 return {
                     ...formula,
-                    presidente: null, // O dejarlo como estaba si la API lo incluye pero vacío
-                    vicepresidente: null, // O dejarlo como estaba
+                    presidente: null,
+                    vicepresidente: null,
                 };
             }
         });
 
-        // Espera a que todas las promesas se resuelvan
         return Promise.all(enrichedFormulasPromises);
-    };
+    }, [getPartyDetails]);
 
 
     /**
@@ -63,14 +61,16 @@ const useResultsService = () => {
      * @param {number} numeroCircuito - El número del circuito.
      * @returns {Promise<object>} Los resultados del circuito con los datos enriquecidos.
      */
-    const getCircuitElectionResults = async (idEleccion, numeroCircuito) => {
+    const getCircuitElectionResults = useCallback(async (idEleccion, numeroCircuito) => {
         const url = `elecciones/${idEleccion}/circuitos/${numeroCircuito}/resultados`;
         try {
             const response = await doRequest(url, 'GET', null, true);
-            const results = response.data;
+            const results = response;
 
-            // Enriquecer cada fórmula con los detalles de presidente y vicepresidente
-            const enrichedPorFormula = await enrichFormulasWithCandidateDetails(results.votos.porFormula);
+            // Asegúrate de que results.votos y results.votos.porFormula existen antes de intentar enriquecer
+            const enrichedPorFormula = (results?.votos?.porFormula)
+                ? await enrichFormulasWithCandidateDetails(results.votos.porFormula)
+                : [];
 
             return {
                 ...results,
@@ -80,10 +80,9 @@ const useResultsService = () => {
                 }
             };
         } catch (error) {
-            console.error(`Error al obtener resultados del circuito ${numeroCircuito} para la elección ${idEleccion}:`, error);
-            throw error;
+            throw new Error(errorMessage);
         }
-    };
+    }, [doRequest, enrichFormulasWithCandidateDetails]);
 
     /**
      * Devuelve los resultados totales de una elección.
@@ -92,17 +91,20 @@ const useResultsService = () => {
      * @param {number} [departamento] - Opcional: Número del departamento para filtrar.
      * @returns {Promise<object>} Los resultados totales con los datos enriquecidos.
      */
-    const getOverallElectionResults = async (idEleccion, departamento = null) => {
+    const getOverallElectionResults = useCallback(async (idEleccion, departamento = null) => {
         let url = `elecciones/${idEleccion}/resultados`;
         if (departamento) {
             url += `?departamento=${departamento}`;
         }
         try {
             const response = await doRequest(url, 'GET', null, true);
-            const results = response.data;
+            const results = response;
 
-            // Enriquecer cada fórmula con los detalles de presidente y vicepresidente
-            const enrichedPorFormula = await enrichFormulasWithCandidateDetails(results.votos.porFormula);
+            console.log(results)
+
+            const enrichedPorFormula = (results?.votos?.porFormula)
+                ? await enrichFormulasWithCandidateDetails(results.votos.porFormula)
+                : [];
 
             return {
                 ...results,
@@ -112,10 +114,9 @@ const useResultsService = () => {
                 }
             };
         } catch (error) {
-            console.error(`Error al obtener resultados totales de la elección ${idEleccion}:`, error);
-            throw error;
+            throw new Error(errorMessage);
         }
-    };
+    }, [doRequest, enrichFormulasWithCandidateDetails]);
 
     return {
         getCircuitElectionResults,

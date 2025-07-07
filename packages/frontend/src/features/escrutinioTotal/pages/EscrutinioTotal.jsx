@@ -11,16 +11,13 @@ const EscrutinioFinalPage = () => {
     const [overallResults, setOverallResults] = useState(null);
     const location = useLocation();
     const { getOverallElectionResults } = useResultsService();
-    const { electionInfo } = useElection(); // Obtener idEleccion del contexto
+    const { electionInfo } = useElection(); 
 
-    // Usar idEleccionActual del contexto
     const idEleccionActual = electionInfo.idEleccion;
 
     useEffect(() => {
-        // Asegurarse de que el idEleccion esté disponible antes de intentar cargar
         if (!idEleccionActual) {
             setLoading(false);
-            toast.warn('ID de elección no disponible para cargar resultados finales.');
             return;
         }
 
@@ -29,15 +26,12 @@ const EscrutinioFinalPage = () => {
         if (resultsFromState) {
             setOverallResults(resultsFromState);
             setLoading(false);
-            toast.success('Resultados totales cargados desde la navegación.');
         } else {
             const fetchOverallResults = async () => {
                 try {
                     const results = await getOverallElectionResults(idEleccionActual);
                     setOverallResults(results);
-                    toast.success('Resultados totales cargados del backend.');
                 } catch (error) {
-                    toast.error('Error al cargar los resultados totales.');
                     console.error("Error fetching overall results:", error);
                 } finally {
                     setLoading(false);

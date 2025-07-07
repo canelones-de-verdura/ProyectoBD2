@@ -1,5 +1,5 @@
 // src/features/PanelAdmin/EscrutinioCircuito/pages/EscrutinioCircuitoPage.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react'; // Importa useCallback
 import { Container, Typography, Box, Button, LinearProgress } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
@@ -11,48 +11,56 @@ const EscrutinioCircuitoPage = () => {
     const [circuitResults, setCircuitResults] = useState(null);
     const navigate = useNavigate();
     const { getCircuitElectionResults, getOverallElectionResults } = useResultsService();
-    const { electionInfo } = useElection(); // Obtener idEleccion y numeroCircuito del contexto
+    const { electionInfo } = useElection();
 
-    // Usar idEleccionActual y numeroCircuitoActual del contexto
     const idEleccionActual = electionInfo.idEleccion;
-    const numeroCircuitoActual = electionInfo.numeroCircuito;
+    // Usa 'numeroCircuito' que es el nombre consistente en el contexto
+    const numeroCircuitoActual = electionInfo.numeroCircuito; 
 
-    useEffect(() => {
+    const fetchCircuitResults = useCallback(async () => {
         // Asegurarse de que ambos estén disponibles antes de intentar cargar
-        if (!idEleccionActual || !numeroCircuitoActual) {
-            setLoading(false);
-            toast.warn('Información de elección o circuito no disponible para cargar resultados del circuito.');
-            return;
+        if (idEleccionActual === null || numeroCircuitoActual === null) {
+            // No mostrar toast.warn aquí cada vez que el componente se renderiza con valores nulos
+            // El usuario ya sabe que la info no está disponible.
+            console.log('Esperando información de elección o circuito...');
+            return; 
         }
 
-        const fetchCircuitResults = async () => {
-            setLoading(true);
-            try {
-                const results = await getCircuitElectionResults(idEleccionActual, numeroCircuitoActual);
-                setCircuitResults(results);
-                toast.success(`Resultados del circuito ${numeroCircuitoActual} cargados.`);
-            } catch (error) {
-                toast.error(`Error al cargar resultados del circuito ${numeroCircuitoActual}.`);
-                console.error("Error fetching circuit results:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchCircuitResults();
-    }, [idEleccionActual, numeroCircuitoActual, getCircuitElectionResults]);
-
-    const handleCheckEscrutinioTotal = async () => {
         setLoading(true);
         try {
-            if (!idEleccionActual) {
+            const results = await getCircuitElectionResults(idEleccionActual, numeroCircuitoActual);
+            setCircuitResults(results);
+            toast.success(`Resultados del circuito ${numeroCircuitoActual} cargados.`);
+        } catch (error) {
+            // El mensaje de error ahora proviene del servicio
+            console.error("Error fetching circuit results:", error);
+            setCircuitResults(null); // Limpiar resultados en caso de error
+        } finally {
+            setLoading(false);
+        }
+    }, [idEleccionActual, numeroCircuitoActual, getCircuitElectionResults]); // Dependencias
+
+    // Este useEffect se ejecutará UNA SOLA VEZ cuando idEleccionActual y numeroCircuitoActual
+    // tengan valores definidos (no null).
+    // Si idEleccionActual o numeroCircuitoActual son null inicialmente, el `fetchCircuitResults`
+    // no se ejecutará hasta que cambien a un valor no null.
+    useEffect(() => {
+        fetchCircuitResults();
+    }, [fetchCircuitResults]); // Dependencia del useCallback
+
+    // Memoiza handleCheckEscrutinioTotal con useCallback
+    const handleCheckEscrutinioTotal = useCallback(async () => {
+        setLoading(true);
+        try {
+            if (idEleccionActual === null) {
                 toast.warn('ID de elección no disponible para verificar escrutinio total.');
                 setLoading(false);
                 return;
             }
             const overallResults = await getOverallElectionResults(idEleccionActual);
 
-            if (overallResults && overallResults.votos.total > 0) {
+            // Asegúrate de que overallResults y overallResults.votos existan
+            if (overallResults?.votos?.total > 0) { // Uso de optional chaining para seguridad
                 toast.success('Escrutinio total disponible. Redirigiendo...');
                 navigate('/EscrutinioFinal', { state: { overallResults } });
             } else {
@@ -60,12 +68,11 @@ const EscrutinioCircuitoPage = () => {
             }
 
         } catch (error) {
-            toast.error('Error al verificar el escrutinio total.');
             console.error("Error al verificar escrutinio total:", error);
         } finally {
             setLoading(false);
         }
-    };
+    }, [idEleccionActual, getOverallElectionResults, navigate]); // Dependencias
 
     return (
         <Container maxWidth="md" sx={{ mt: 6, textAlign: 'center' }}>
@@ -85,21 +92,26 @@ const EscrutinioCircuitoPage = () => {
             {!loading && circuitResults ? (
                 <Box sx={{ mt: 4, textAlign: 'left' }}>
                     <Typography variant="h6">Resumen del Circuito:</Typography>
-                    <Typography>Votos Totales: {circuitResults.votos.total}</Typography>
-                    <Typography>Votos Válidos: {circuitResults.votos.validos}</Typography>
-                    <Typography>Votos en Blanco: {circuitResults.votos.blanco}</Typography>
-                    <Typography>Votos Anulados: {circuitResults.votos.anulado}</Typography>
+                    <Typography>Votos Totales: {circuitResults.votos?.total || 0}</Typography> {/* Optional chaining */}
+                    <Typography>Votos Válidos: {circuitResults.votos?.validos || 0}</Typography> {/* Optional chaining */}
+                    <Typography>Votos en Blanco: {circuitResults.votos?.blanco || 0}</Typography> {/* Optional chaining */}
+                    <Typography>Votos Anulados: {circuitResults.votos?.anulado || 0}</Typography> {/* Optional chaining */}
                     <Box sx={{ mt: 2 }}>
                         <Typography variant="subtitle1">Votos por Fórmula:</Typography>
-                        {circuitResults.votos.porFormula.map((formula, index) => (
+                        {circuitResults.votos?.porFormula?.map((formula, index) => ( // Optional chaining
                             <Typography key={index} sx={{ ml: 2 }}>
-                                - {formula.partido.nombre} ({formula.presidente?.nombreCompleto || 'N/A'} / {formula.vicepresidente?.nombreCompleto || 'N/A'}): {formula.votos} votos
+                                - {formula.partido?.nombre} ({formula.presidente?.nombreCompleto || 'N/A'} / {formula.vicepresidente?.nombreCompleto || 'N/A'}): {formula.votos} votos
                             </Typography>
                         ))}
                     </Box>
                 </Box>
             ) : (
-                !loading && <Typography>Cargando resultados del circuito o no disponibles...</Typography>
+                // Mostrar un mensaje diferente si la data no está lista pero no hay error
+                !loading && (idEleccionActual === null || numeroCircuitoActual === null) ? (
+                    <Typography>Por favor, asegúrese de que la elección y el circuito estén habilitados para ver los resultados.</Typography>
+                ) : (
+                    !loading && <Typography>No hay resultados disponibles para el circuito o ha ocurrido un error.</Typography>
+                )
             )}
 
             <Box sx={{ mt: 4 }}>
@@ -108,7 +120,7 @@ const EscrutinioCircuitoPage = () => {
                     color="primary"
                     size="large"
                     onClick={handleCheckEscrutinioTotal}
-                    disabled={loading || !isElectionInfoReady}
+                    disabled={loading}
                 >
                     Verificar Escrutinio Total
                 </Button>

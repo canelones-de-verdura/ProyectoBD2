@@ -12,7 +12,7 @@ const usePartidosService = () => {
     const getAllPartidos = async () => {
         try {
             const response = await doRequest("partidos", "GET", null, true); // Requiere token
-            return response.data.data; // Asumiendo que la respuesta es { "data": [...] }
+            return response; // Asumiendo que la respuesta es { "data": [...] }
         } catch (error) {
             console.error("Error al obtener partidos:", error);
             throw error;

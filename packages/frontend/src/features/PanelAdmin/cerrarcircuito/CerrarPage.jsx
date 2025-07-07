@@ -30,7 +30,6 @@ const CerrarCircuitoPage = () => { // Mantengo el nombre del componente como Cer
 
     const handleOpenConfirmModal = () => {
         if (!isElectionInfoReady) {
-            toast.warn('La información de la elección y circuito no está disponible. Por favor, inicie sesión o asegúrese de que haya sido cargada.');
             return;
         }
         setOpenConfirmModal(true);
@@ -45,16 +44,14 @@ const CerrarCircuitoPage = () => { // Mantengo el nombre del componente como Cer
         try {
             const response = await closeCircuit(idEleccion, numeroCircuito); // Llama al servicio real
 
-            toast.success(`Circuito ${numeroCircuito} cerrado correctamente. Redirigiendo a Escrutinio...`);
             // Opcional: Actualizar el estado del circuito en el contexto. Hacer???
-            updateElectionInfo({ estadoCircuito: response.estado }); // Asumiendo que response.estado existe
+            updateElectionInfo({ estadoCircuito: response.estado }); 
 
             navigate('/EscrutinioCircuito');
 
         } catch (error) {
             // Manejo de errores específicos del backend
             const errorMessage = error.response?.data?.detail || 'Error al cerrar el circuito. Intente de nuevo.';
-            toast.error(errorMessage);
             console.error("Error al cerrar circuito:", error);
         } finally {
             setLoading(false);

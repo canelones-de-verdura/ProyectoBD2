@@ -21,13 +21,9 @@ const LoginPage = () => {
 
     const onSubmit = async (data) => { // Hacemos la función asíncrona
         try {
-            // *** CAMBIO CRÍTICO AQUÍ ***
-            // Usar data.ci y data.credencial según los campos del formulario
             await login(data.ci, data.credencial); // data.ci y data.credencial
             navigate('/inicio'); // Redirige a /inicio si el login fue exitoso
         } catch (error) {
-            // El error ya se maneja en el AuthContext con `toast.error`
-            // Aquí no necesitamos hacer nada más.
             console.error("Login attempt failed in LoginPage:", error);
         }
     };

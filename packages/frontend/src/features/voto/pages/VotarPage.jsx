@@ -26,7 +26,6 @@ const VotarPage = () => {
         // deberías hacer una llamada a la API para obtener los datos del votante usando votanteId.
         // Por ahora, si no existe, redirigimos.
         if (!voterInfo) {
-            toast.error("Información del votante no disponible. Redirigiendo a búsqueda.");
             navigate('/votantes');
             return;
         }
@@ -35,10 +34,8 @@ const VotarPage = () => {
             try {
                 const data = await getAllPartidos();
                 setPartidos(data);
-                toast.success("Partidos cargados.");
             } catch (error) {
                 console.error("Error al cargar partidos:", error);
-                toast.error("Error al cargar partidos. Intente nuevamente.");
             } finally {
                 setLoadingPartidos(false);
             }
@@ -70,7 +67,6 @@ const VotarPage = () => {
         setOpenConfirmVoteModal(false);
 
         if (!voterInfo) {
-            toast.error("No hay información del votante para registrar el voto.");
             return;
         }
 
@@ -88,15 +84,12 @@ const VotarPage = () => {
         } else if (voteConfirmationType === 'anulado') {
             voteData.voto.tipo = "Anulado";
         } else {
-            toast.error("Tipo de voto no válido o partido no seleccionado.");
             return;
         }
 
         try {
             // Llamada al servicio para registrar el voto en el backend
             await registerVote(voteData);
-
-            toast.success(`Voto ${voteData.voto.tipo} para ${voterInfo.nombre} registrado exitosamente.`);
 
             // Redirigir de vuelta a la página de búsqueda de votantes
             // Pasamos un estado para indicar que un votante ha votado, lo cual puede disparar una recarga en BuscarVotantesPage

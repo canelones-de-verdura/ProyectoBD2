@@ -27,11 +27,10 @@ const BuscarVotantesPage = () => {
     const idEleccion = electionInfo.idEleccion;
     const numeroCircuito = electionInfo.numeroCircuito;
     const rangoInicioCred = electionInfo.rangoInicioCred; // <-- OBTENEMOS ESTO DEL CONTEXTO
-    const rangoFinCred = electionInfo.rangoFinCred;     // <-- OBTENEMOS ESTO DEL CONTEXTO
-
+    const rangoFinCred = electionInfo.rangoFinCred;   
+    const serie = electionInfo.serie;
 
     const fetchAllVotersFromApi = useCallback(async () => {
-        setLoading(true);
         try {
             const data = await getAllVotantes();
             const mappedData = data.map(votante => ({
@@ -50,29 +49,6 @@ const BuscarVotantesPage = () => {
             setLoading(false);
         }
     }, [getAllVotantes]);
-
-
-    // ELIMINAR ESTE useEffect YA NO ES NECESARIO PARA LOS RANGOS
-    /*
-    useEffect(() => {
-        const loadCredencialRanges = async () => {
-            if (idEleccion && numeroCircuito) {
-                try {
-                    const ranges = await getCredencialRangesByCircuit(idEleccion, numeroCircuito);
-                    setCredencialRanges(ranges);
-                } catch (error) {
-                    console.error("Error al obtener los rangos de credenciales:", error);
-                    setCredencialRanges(null);
-                    toast.error("No se pudieron cargar los rangos de credenciales del circuito.");
-                }
-            } else {
-                setCredencialRanges(null);
-            }
-        };
-
-        loadCredencialRanges();
-    }, [idEleccion, numeroCircuito, getCredencialRangesByCircuit]);
-    */
 
 
     useEffect(() => {
@@ -175,9 +151,9 @@ const BuscarVotantesPage = () => {
                     Rango de Credenciales para este Circuito:
                 </Typography>
                 {idEleccion && numeroCircuito ? (
-                    rangoInicioCred && rangoFinCred ? ( // Verificar que los rangos existen en el contexto
+                    rangoInicioCred && rangoFinCred && serie ? ( // Verificar que los rangos existen en el contexto
                         <Typography variant="body1" align="center">
-                            **Desde:** {rangoInicioCred} - **Hasta:** {rangoFinCred}
+                            {serie} **Desde:** {rangoInicioCred} - **Hasta:** {rangoFinCred}
                         </Typography>
                     ) : (
                         <Typography variant="body2" align="center" color="textSecondary">
