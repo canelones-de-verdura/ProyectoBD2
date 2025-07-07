@@ -245,7 +245,7 @@ export async function circ_close(req, res) {
 export async function circ_votar(req, res) {
   try {
     const { idEleccion, numero } = req.params;
-    const { data } = req.body;
+    const data = req.body;
     const db = db_manager.getInstance();
 
     const circ = (
@@ -258,8 +258,8 @@ export async function circ_votar(req, res) {
       return res.status(404).json({ error: "Circuito no encontrado." });
     }
 
-    if (circ.estado === "cerrado")
-      return res.status(404).json({ error: "Circuito ya cerró." });
+    if (circ.estado !== "abierto")
+      return res.status(404).json({ error: "Circuito no habilitado." });
 
     const votante = {
       ciVotante: data.ciVotante,
@@ -304,6 +304,27 @@ export async function el_resultados(req, res) {
     const { idEleccion } = req.params;
     const db = db_manager.getInstance();
 
+    const circs = await db.get_with("Circuito", {
+      idEleccion: idEleccion,
+    });
+    if (!circs) {
+      return res.status(404).json({ error: "Circuitos no encontrados." });
+    }
+
+    circs.forEach((circ) => {
+      if (circ.estado !== "cerrado") {
+        return res.status(404).json({
+          error:
+            "Resultados no disponibles hasta que se cierren todos los circuitos.",
+        });
+      }
+    });
+
+    // si ya se cerraron todos los circuitos, avisamos a vote_queue que envíe todo
+    const vq = vote_queue.getInstance();
+    vq.insertar();
+
+    // escrutinio
     const votos = await db.get_with("Voto", { idEleccion: idEleccion });
     if (votos.length === 0)
       return res.status(500).json({ error: "Unexpected server error." });
@@ -332,23 +353,21 @@ export async function el_resultados(req, res) {
     // hay que traer todos y luego filtrar
     const id_validos = new Set(
       votos
-        .filter((voto) => {
-          voto.tipo === tipo_voto.VALIDO;
-        })
+        .filter((voto) => voto.tipo === tipo_voto.VALIDO)
         .map((voto) => {
-          voto.id;
+          return voto.id;
         }),
     );
 
-    const validos = (await db.get_with("Valido")).filter((valido) => {
-      id_validos.has(valido.id);
-    });
+    const validos = (await db.get_all("Valido")).filter((valido) =>
+      id_validos.has(valido.idVoto),
+    );
 
     // agregamos a data
     validos.reduce((acumulador, valido) => {
-      const formula = acumulador.find((f) => {
-        f.partido.nombre === valido.nombrePartido;
-      });
+      const formula = acumulador.find(
+        (f) => f.partido.nombre === valido.nombrePartido,
+      );
       if (formula) {
         formula.votos++;
       } else {
@@ -361,7 +380,7 @@ export async function el_resultados(req, res) {
         });
       }
       return acumulador;
-    }, data.porFormula);
+    }, data.votos.porFormula);
 
     res.status(200).json({ data: data });
   } catch (err) {
@@ -375,6 +394,21 @@ export async function circ_resultados(req, res) {
   try {
     const { idEleccion, numero } = req.params;
     const db = db_manager.getInstance();
+
+    const circ = (
+      await db.get_with("Circuito", {
+        numero: numero,
+        idEleccion: idEleccion,
+      })
+    ).pop();
+    if (!circ) {
+      return res.status(404).json({ error: "Circuito no encontrado." });
+    }
+
+    if (circ.estado !== "cerrado")
+      return res.status(404).json({
+        error: "Resultados no disponibles hasta que se cierre el circuito.",
+      });
 
     const votos = await db.get_with("Voto", {
       numeroCircuito: numero,
@@ -407,23 +441,21 @@ export async function circ_resultados(req, res) {
     // hay que traer todos y luego filtrar
     const id_validos = new Set(
       votos
-        .filter((voto) => {
-          voto.tipo === tipo_voto.VALIDO;
-        })
+        .filter((voto) => voto.tipo === tipo_voto.VALIDO)
         .map((voto) => {
-          voto.id;
+          return voto.id;
         }),
     );
 
-    const validos = (await db.get_with("Valido")).filter((valido) => {
-      id_validos.has(valido.id);
-    });
+    const validos = (await db.get_all("Valido")).filter((valido) =>
+      id_validos.has(valido.idVoto),
+    );
 
     // agregamos a data
     validos.reduce((acumulador, valido) => {
-      const formula = acumulador.find((f) => {
-        f.partido.nombre === valido.nombrePartido;
-      });
+      const formula = acumulador.find(
+        (f) => f.partido.nombre === valido.nombrePartido,
+      );
       if (formula) {
         formula.votos++;
       } else {
@@ -436,7 +468,7 @@ export async function circ_resultados(req, res) {
         });
       }
       return acumulador;
-    }, data.porFormula);
+    }, data.votos.porFormula);
 
     res.status(200).json({ data: data });
   } catch (err) {
