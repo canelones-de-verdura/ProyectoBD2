@@ -358,6 +358,7 @@ Todos los endpoints, menos la autenticación y los resultados de las elecciones,
 
 #### `GET /api/votantes`
 - Devuelve todos los votantes, con info básica y URL para acceder al recurso.
+- Además indica si ya votó en la elección actual.
 
 ```jsonc
 {
@@ -367,6 +368,7 @@ Todos los endpoints, menos la autenticación y los resultados de las elecciones,
       "nombreCompleto": "Juan Perez",
       "credencial": "AAA 1234",
       "url": "/api/votantes/12345678"
+      "yaVoto": false
     }
     // ...
   ]
