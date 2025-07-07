@@ -114,7 +114,7 @@ const useResultsService = () => {
                 }
             };
         } catch (error) {
-            throw new Error(errorMessage);
+            throw new Error(error);
         }
     }, [doRequest, enrichFormulasWithCandidateDetails]);
 

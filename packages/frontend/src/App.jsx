@@ -1,60 +1,62 @@
 // src/App.jsx
-import { useState } from 'react'
 import { ToastContainer } from 'react-toastify';
-
-import { AuthContext, AuthProvider } from './shared/context/AuthContext'
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import HabilitarCircuitoPage from './features/habilitarCircuito/pages/HabilitarPage';
-import { Navigate } from 'react-router-dom';
-import LayoutedRoute from './shared/navitation/LayoutedRoute';
-import BuscarVotantesPage from './features/PanelAdmin/BuscarVotante/pages/BuscarVotantesPage';
-import CerrarCircuitoPage from './features/PanelAdmin/cerrarcircuito/CerrarPage';
-import VotarPage from './features/voto/pages/VotarPage';
-import EscrutinioCircuitoPage from './features/escrutinioCircuito/pages/EscrutinioCircuitoPage';
-import EscrutinioFinalPage from './features/escrutinioTotal/pages/EscrutinioTotal';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './shared/context/AuthContext';
 import { ElectionProvider } from './shared/context/EleccionContext';
 
-// Nuevas importaciones para la Corte
-import CorteLoginPage from './features/auth/Corte/Pages/CorteLoginPage';
-import CorteDashboardPage from './features/auth/Corte/Pages/CorteDashboardPage';
+import LayoutedRoute    from './shared/navitation/LayoutedRoute';
+import ProtectedRoute   from './shared/navitation/ProtectedRoute';
+import UnAuthRoute      from './shared/navitation/UnAuthRoute';
 
+import LoginPage              from './features/auth/pages/LoginPage';
+import CorteLoginPage         from './features/auth/Corte/Pages/CorteLoginPage';
+import CorteDashboardPage     from './features/auth/Corte/Pages/CorteDashboardPage';
 
-import './App.css'
-import UnAuthRoute from './shared/navitation/UnAuthRoute'
-import LoginPage from './features/auth/pages/LoginPage'
+import HabilitarCircuitoPage  from './features/habilitarCircuito/pages/HabilitarPage';
+import BuscarVotantesPage     from './features/PanelAdmin/BuscarVotante/pages/BuscarVotantesPage';
+import CerrarCircuitoPage     from './features/PanelAdmin/cerrarcircuito/CerrarPage';
+import VotarPage              from './features/voto/pages/VotarPage';
+import EscrutinioCircuitoPage from './features/escrutinioCircuito/pages/EscrutinioCircuitoPage';
+import EscrutinioFinalPage    from './features/escrutinioTotal/pages/EscrutinioTotal';
+
+import './App.css';
 
 function App() {
-
   return (
     <ElectionProvider>
       <AuthProvider>
         <BrowserRouter>
-            <ToastContainer />
+          <ToastContainer />
           <Routes>
-            {/* Rutas sin autenticación (o con autenticación específica) */}
+            {/* 1️⃣ Rutas públicas / sólo sin sesión */}
             <Route element={<UnAuthRoute />}>
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/Corte" element={<CorteLoginPage />} /> {/* <-- Nueva ruta de login para la Corte */}
+              <Route path="/login"  element={<LoginPage />} />
+              <Route path="/Corte"  element={<CorteLoginPage />} />
             </Route>
 
-            {/* Rutas que usan el LayoutedRoute (con Navbar) */}
+            {/* 2️⃣ Grupo con layout NAVBAR (protegido dentro del propio LayoutedRoute) */}
+            <Route element={<ProtectedRoute />}>
             <Route element={<LayoutedRoute />}>
+              {/* redirección raíz */}
               <Route path="/" element={<Navigate to="/inicio" />} />
+
               <Route path="/votantes" element={<BuscarVotantesPage />} />
               <Route path="/circuito" element={<CerrarCircuitoPage />} />
               <Route path="/votar/:votanteId/:tipoVoto" element={<VotarPage />} />
             </Route>
-            <Route path="/inicio" element={<HabilitarCircuitoPage />} />
-            <Route path="/EscrutinioCircuito" element={<EscrutinioCircuitoPage />} />
-            <Route path="/EscrutinioFinal" element={<EscrutinioFinalPage />} />
-            <Route path="/CorteDashboard" element={<CorteDashboardPage />} /> {/* <-- Nueva ruta del dashboard de la Corte */}
+
+            {/* 3️⃣ Páginas protegidas sin layout */}
+              <Route path="/inicio"               element={<HabilitarCircuitoPage />} />
+              <Route path="/EscrutinioCircuito"   element={<EscrutinioCircuitoPage />} />
+              <Route path="/EscrutinioFinal"      element={<EscrutinioFinalPage />} />
+              <Route path="/CorteDashboard"       element={<CorteDashboardPage />} />
+            </Route>
 
           </Routes>
         </BrowserRouter>
       </AuthProvider>
     </ElectionProvider>
-
-  )
+  );
 }
 
-export default App
+export default App;
