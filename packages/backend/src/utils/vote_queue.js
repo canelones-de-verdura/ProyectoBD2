@@ -106,10 +106,12 @@ export class vote_queue {
     )
       return null;
 
-    const partido = (
-      await db.get_with("Partido", { nombre: voto.nombrePartido })
-    ).pop();
-    if (!partido) return null;
+    if (voto.tipo === tipo_voto.VALIDO) {
+      const partido = (
+        await db.get_with("Partido", { nombre: voto.nombrePartido })
+      ).pop();
+      if (!partido) return null;
+    }
 
     // chequeos votante
     if (!votante.ciVotante || votante.observado === undefined) return null;
