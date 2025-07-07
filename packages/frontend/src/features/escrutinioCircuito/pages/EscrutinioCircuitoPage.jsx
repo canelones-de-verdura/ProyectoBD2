@@ -30,7 +30,6 @@ const EscrutinioCircuitoPage = () => {
         try {
             const results = await getCircuitElectionResults(idEleccionActual, numeroCircuitoActual);
             setCircuitResults(results);
-            toast.success(`Resultados del circuito ${numeroCircuitoActual} cargados.`);
         } catch (error) {
             // El mensaje de error ahora proviene del servicio
             console.error("Error fetching circuit results:", error);
@@ -61,7 +60,6 @@ const EscrutinioCircuitoPage = () => {
 
             // Asegúrate de que overallResults y overallResults.votos existan
             if (overallResults?.votos?.total > 0) { // Uso de optional chaining para seguridad
-                toast.success('Escrutinio total disponible. Redirigiendo...');
                 navigate('/EscrutinioFinal', { state: { overallResults } });
             } else {
                 toast.info('El escrutinio total aún no está disponible o no hay datos. Intente de nuevo más tarde.');

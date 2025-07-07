@@ -26,7 +26,6 @@ const CorteLoginPage = () => {
                 // Si la Corte opera sobre una elección específica, actualiza el contexto
                 updateElectionInfo({ idEleccion: simulatedElectionIdForCourt }); // Solo idEleccion aquí, no numeroCircuito
 
-                toast.success('Login de Corte exitoso!');
                 navigate('/CorteDashboard'); // Redirige al dashboard de la Corte
             } else {
                 throw new Error('Credenciales de Corte inválidas.');

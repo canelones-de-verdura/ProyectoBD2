@@ -69,7 +69,6 @@ const CorteDashboardPage = () => {
         setLoading(true); // Activar loading durante la acción
         try {
             await confirmOrAnnulVote(idEleccion, ciVotante, accion);
-            toast.success(`Voto observado del CI ${ciVotante} ha sido ${accion === 'confirmar' ? 'confirmado' : 'anulado'} exitosamente.`);
             // Refrescar la lista después de la acción exitosa
             fetchObservedVotes();
         } catch (error) {
